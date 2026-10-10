@@ -5,22 +5,24 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
         <title>MyAppLauncher</title>
         <item>
             <title>1.0.0</title>
-            <pubDate>Sat, 10 Oct 2026 23:15:31 +0200</pubDate>
+            <pubDate>Sat, 10 Oct 2026 23:34:50 +0200</pubDate>
             <link>https://github.com/CocoZillAaa/MyAppLauncher</link>
-            <sparkle:version>21</sparkle:version>
+            <sparkle:version>22</sparkle:version>
             <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<h2>Français — build 21</h2>
-<ul><li>Recherche manuelle des mises à jour depuis le compagnon et son menu.</li><li>Recherche automatique facultative, désactivée par défaut ; chaque installation demande confirmation.</li><li>Mises à jour et liste des versions signées avec Sparkle 2.10.0.</li><li>Fermeture ciblée du widget avant remplacement, puis réenregistrement au premier lancement du nouveau build.</li><li>Conservation de la sélection, de l’ordre, des réglages et des icônes.</li></ul>
-<p>Première installation manuelle depuis un build 20 ou antérieur. macOS 27 et Mac Apple Silicon requis. Version signée Apple Development, non notarisée. Le passage intégré à une version suivante reste à valider sur un second Mac.</p>
-<h2>English — build 21</h2>
-<ul><li>Manual update checks in the companion and its menu.</li><li>Optional automatic checks, disabled by default; installation requires confirmation.</li><li>Signed update archives and feed with Sparkle 2.10.0.</li><li>Targeted widget shutdown before replacement, then registration on the first launch of the new build.</li><li>Selection, order, settings and icons are preserved.</li></ul>
-<p>Manual first installation from build 20 or earlier. Requires macOS 27 and Apple Silicon. Apple Development signed, not notarized. Updating through the integrated updater to a later build still needs validation on a second Mac.</p>
+            <description><![CDATA[<h2>Test de mise à jour — build 22</h2>
+<p>Ce build ajoute le repère bleu « Test mise à jour · build 22 » sous le titre du compagnon.</p>
+<p>Il permet de vérifier la mise à jour depuis le build 21 : téléchargement, installation après confirmation, relance du compagnon et retour du widget avec votre sélection et vos réglages. Le mécanisme de mise à jour est celui du build 21.</p>
+<p>Pour réaliser le test, installez cette version depuis « Mises à jour → Rechercher une mise à jour… ». Ne remplacez pas l’app manuellement. Après installation, ouvrez « Configurer… » si la fenêtre ne s’affiche pas. Le repère doit apparaître.</p>
+<h2>Update trial — build 22</h2>
+<p>This build adds the blue “Test mise à jour · build 22” marker below the companion title.</p>
+<p>Use the update check in build 21 to verify download, confirmed installation, companion relaunch and widget recovery with existing settings. The update mechanism is unchanged from build 21. Open “Configurer…” if the configuration window does not appear after relaunch.</p>
+<p>Apple Silicon, macOS 27 minimum. Apple Development signed, not notarized.</p>
 ]]></description>
-            <enclosure url="https://github.com/CocoZillAaa/MyAppLauncher/releases/download/v1.0.0-build21/MyAppLauncher-1.0.0-build21.zip" length="1847234" type="application/octet-stream" sparkle:edSignature="t1RwAOMIsdSOo0CtFw2EPRH5XRXfewFfVyUKTgSQAkdGz55FDq6pC8wNb8egtbS8BY6zTz5VnAaNLCGF5AirDg=="></enclosure>
+            <enclosure url="https://github.com/CocoZillAaa/MyAppLauncher/releases/download/v1.0.0-build22/MyAppLauncher-1.0.0-build22.zip" length="1848577" type="application/octet-stream" sparkle:edSignature="TPA4mafMNAv6eEvbAP8A51GQuVr0EbjtTUTBtM04C74lMfkM7t3NooOJW9h84TO/7a4MJ7QIgOzGgNDma+CiBg=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: tDHYdYJ9Z87LlHd2KohGCkMIGfS14/2sN8RSx4EMSLVhvf661NHnqMuTDjWsbZbChL5HJi2oNjskAeWHmhK8CA==
-length: 2604
+edSignature: WLyOAo0JkXBLruEvb2Gk11nMjOQvsTLyDrS9w4DsQcpZmiB448I5Q6cBbsxvZDLz3NmLicK5pBa9aTau/5H6BA==
+length: 2365
 -->

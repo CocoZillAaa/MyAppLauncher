@@ -15,7 +15,7 @@
 	<key>CFBundleName</key>
 	<string>My App Launcher Widget</string>
 	<key>CFBundleVersion</key>
-	<string>21</string>
+	<string>22</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0.0</string>
 	<key>CFBundlePackageType</key>

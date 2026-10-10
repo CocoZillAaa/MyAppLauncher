@@ -7,7 +7,7 @@
 
 [Français](#français) · [English](#english) · [Télécharger / Download](https://github.com/CocoZillAaa/MyAppLauncher/releases/latest)
 
-Version actuelle / Current version: **1.0.0 — build 21**.
+Version actuelle / Current version: **1.0.0 — build 22**.
 
 ## Français
 
@@ -25,9 +25,9 @@ Cinq formats : Petit, Moyen, Grand, Très grand et Très grand vertical. Le fond
 
 ### Installer
 
-**Prérequis : Mac Apple Silicon et macOS 27 ou ultérieur.** Le fichier fourni est un build de développement signé Apple Development, non notarisé. L’ouverture du compagnon, l’installation du widget et ses interactions ont été confirmées par l’utilisateur sur un second Mac après autorisation manuelle dans les réglages de sécurité sur une version précédente. Le build 21 reste à valider sur le second Mac. macOS peut bloquer le premier lancement.
+**Prérequis : Mac Apple Silicon et macOS 27 ou ultérieur.** Le fichier fourni est un build de développement signé Apple Development, non notarisé. L’ouverture du compagnon, l’installation du widget et ses interactions ont été confirmées par l’utilisateur sur un second Mac après autorisation manuelle dans les réglages de sécurité sur une version précédente. L’installation manuelle du build 21, la conservation de la sélection et la recherche de mises à jour sont confirmées sur le second Mac. Le passage intégré au build 22 reste à valider. macOS peut bloquer le premier lancement.
 
-1. Dans [Releases](https://github.com/CocoZillAaa/MyAppLauncher/releases/latest), téléchargez `MyAppLauncher-1.0.0-build21.zip`.
+1. Dans [Releases](https://github.com/CocoZillAaa/MyAppLauncher/releases/latest), téléchargez `MyAppLauncher-1.0.0-build22.zip`.
 2. Décompressez-le et glissez `MyAppLauncher.app` dans **Applications**.
 3. Ouvrez l’application. Si la configuration ne s’affiche pas, choisissez **Configurer…** dans son menu en haut de l’écran.
 4. Ajoutez les applications et liens souhaités.
@@ -44,6 +44,10 @@ Cette version n’est pas notarisée. Pour la copie provenant de ce dépôt, si 
 5. Authentifiez-vous si macOS le demande, puis confirmez avec **Ouvrir**.
 
 L’autorisation concerne cette application. Vous pouvez ensuite l’ouvrir normalement et ajouter son widget. Si le bouton n’apparaît pas, réessayez d’ouvrir l’app avant de retourner dans les réglages. Sur un Mac administré par une entreprise, contactez l’administrateur si l’option est indisponible. [Procédure Apple](https://support.apple.com/fr-fr/102445).
+
+### Test visuel — build 22
+
+Le repère bleu **« Test mise à jour · build 22 »** apparaît sous le titre du compagnon. Depuis le build 21, utilisez **Mises à jour → Rechercher une mise à jour…**, puis confirmez le téléchargement et l’installation. Après relance, ouvrez **Configurer…** si nécessaire. Vérifiez le repère et le retour du widget avec votre sélection, puis le lancement d’une application et d’un lien. Pour ce test, utilisez la mise à jour intégrée : aucun remplacement manuel de l’app ni redémarrage préalable.
 
 ### Utiliser et mettre à jour
 
@@ -90,9 +94,9 @@ Five sizes: Small, Medium, Large, Extra Large and Extra Large Portrait. The widg
 
 ### Install
 
-**Requirements: Apple Silicon Mac and macOS 27 or later.** The download is an Apple Development signed build and is not notarized. The user confirmed that the companion opens and the widget installs and responds on a second Mac after manual approval in security settings on an earlier version. Build 21 still needs validation on the second Mac. macOS may block the first launch.
+**Requirements: Apple Silicon Mac and macOS 27 or later.** The download is an Apple Development signed build and is not notarized. The user confirmed that the companion opens and the widget installs and responds on a second Mac after manual approval in security settings on an earlier version. Manual build 21 installation, retained selection and update checking are confirmed on the second Mac. The integrated upgrade to build 22 still needs validation. macOS may block the first launch.
 
-1. Download `MyAppLauncher-1.0.0-build21.zip` from [Releases](https://github.com/CocoZillAaa/MyAppLauncher/releases/latest).
+1. Download `MyAppLauncher-1.0.0-build22.zip` from [Releases](https://github.com/CocoZillAaa/MyAppLauncher/releases/latest).
 2. Extract it and drag `MyAppLauncher.app` into **Applications**.
 3. Open it. If configuration does not appear, choose **Configurer…** from its menu in the menu bar.
 4. Add your apps and links.
@@ -109,6 +113,10 @@ This version is not notarized. For the copy obtained from this repository, if ma
 5. Authenticate if prompted, then confirm with **Open**.
 
 Approval applies to this app. You can then open it normally and add its widget. If the button is missing, try opening the app again before returning to settings. On a company-managed Mac, contact your administrator if the option is unavailable. [Apple’s instructions](https://support.apple.com/en-us/102445).
+
+### Visual update trial — build 22
+
+The blue **“Test mise à jour · build 22”** marker appears below the companion title. From build 21, check for updates and confirm download and installation. After relaunch, open **Configurer…** if needed. Check the marker, widget recovery, retained selection and launch of an app and link. Use the integrated updater for this trial, without manually replacing the app or restarting beforehand.
 
 ### Use and update
 
