@@ -5,6 +5,9 @@ PROJECT_DIR="$ROOT_DIR"
 BUILD_DIR="$ROOT_DIR/work/DerivedData"
 APP_BUNDLE="$PROJECT_DIR/Install/MyAppLauncher.app"
 MODE="${1:-run}"
+if [[ "$MODE" == "--install-release-built" ]]; then
+    APP_BUNDLE='/Applications/MyAppLauncher.app'
+fi
 LSREGISTER='/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister'
 
 stop_process() {
@@ -22,18 +25,33 @@ stop_process() {
     exit 1
 }
 
-if [[ "$MODE" == "--install-built" ]]; then
+if [[ "$MODE" == "--install-built" || "$MODE" == "--install-release-built" ]]; then
     SOURCE_BUNDLE="${2:?Indiquer le chemin du bundle compilé par Xcode}"
 else
     mkdir -p "$ROOT_DIR/work"
-    xcodebuild -project "$PROJECT_DIR/MyAppLauncher.xcodeproj" -scheme MyAppLauncher -configuration Debug -derivedDataPath "$BUILD_DIR" build > "$ROOT_DIR/work/build.log" 2>&1 || { tail -60 "$ROOT_DIR/work/build.log"; exit 1; }
-    SOURCE_BUNDLE="$BUILD_DIR/Build/Products/Debug/MyAppLauncher.app"
+    BUILD_CONFIGURATION=Debug
+    BUILD_LOG="$ROOT_DIR/work/build.log"
+    if [[ "$MODE" == "--release-build-only" ]]; then
+        BUILD_CONFIGURATION=Release
+        BUILD_DIR="$ROOT_DIR/work/DerivedData-release"
+        BUILD_LOG="$ROOT_DIR/work/build-release.log"
+    fi
+    xcodebuild -project "$PROJECT_DIR/MyAppLauncher.xcodeproj" -scheme MyAppLauncher -configuration "$BUILD_CONFIGURATION" -destination 'generic/platform=macOS' -derivedDataPath "$BUILD_DIR" build > "$BUILD_LOG" 2>&1 || { tail -60 "$BUILD_LOG"; exit 1; }
+    SOURCE_BUNDLE="$BUILD_DIR/Build/Products/$BUILD_CONFIGURATION/MyAppLauncher.app"
 fi
 [[ "$SOURCE_BUNDLE" != "$APP_BUNDLE" ]] || { echo "Le bundle source doit être distinct de la copie installée." >&2; exit 1; }
 /usr/bin/codesign --verify --deep --strict "$SOURCE_BUNDLE"
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$SOURCE_BUNDLE/Contents/Info.plist")" == 'com.openai.MyAppLauncher' ]] || exit 1
+if [[ "$MODE" == "--release-build-only" ]]; then
+    echo "Release compilée et signée : $SOURCE_BUNDLE"
+    exit 0
+fi
 mkdir -p "$PROJECT_DIR/Install"
 STAGED_BUNDLE="$PROJECT_DIR/Install/.MyAppLauncher-new.app"
+if [[ "$MODE" == "--install-release-built" ]]; then
+    # Stage on the destination volume so the final rename is atomic.
+    STAGED_BUNDLE='/Applications/.MyAppLauncher-new.app'
+fi
 rm -rf "$STAGED_BUNDLE"
 /usr/bin/ditto "$SOURCE_BUNDLE" "$STAGED_BUNDLE"
 /usr/bin/codesign --verify --deep --strict "$STAGED_BUNDLE"

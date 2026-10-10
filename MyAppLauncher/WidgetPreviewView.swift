@@ -262,7 +262,7 @@ struct WidgetPreviewView: View {
 
     @ViewBuilder
     private func previewIcon(for item: PreviewItem) -> some View {
-        if let iconURL = item.iconURL, let image = NSImage(contentsOf: iconURL) {
+        if let iconURL = item.iconURL, let image = IconAssetStore.loadCachedImage(from: iconURL) {
             if item.usesSquircle {
                 WebsiteIconView(image: image, size: displayMetrics.iconSize)
             } else {

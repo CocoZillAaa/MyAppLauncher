@@ -10,13 +10,16 @@ struct LauncherEntry: TimelineEntry {
     let displaySettings: WidgetDisplaySettings
     let paginationRevision: String
     let pageIndices: [Int: Int]
+    let isAwaitingConfiguration: Bool
 
     init(date: Date, items: [LauncherDisplayItem], gridSettings: WidgetGridSettings,
-         displaySettings: WidgetDisplaySettings, usesStoredPages: Bool = true) {
+         displaySettings: WidgetDisplaySettings, usesStoredPages: Bool = true,
+         isAwaitingConfiguration: Bool = false) {
         self.date = date
         self.items = items
         self.gridSettings = gridSettings
         self.displaySettings = displaySettings
+        self.isAwaitingConfiguration = isAwaitingConfiguration
         let revision = WidgetPageStateStore.revision(itemIDs: items.map(\.id), grid: gridSettings, display: displaySettings)
         paginationRevision = revision
         pageIndices = usesStoredPages ? WidgetPageStateStore.pages(revision: revision) : [:]
@@ -71,14 +74,17 @@ enum LauncherDisplayItem: Identifiable {
 }
 
 struct LauncherProvider: TimelineProvider {
+    // This cache is scoped to the extension process. A cold launch with no
+    // readable configuration stays empty rather than guessing a selection.
+    @MainActor private static var lastValidEntry: LauncherEntry?
+
     func placeholder(in context: Context) -> LauncherEntry {
-        LauncherEntry(
-            date: .now,
-            items: Array(AppCatalog.load().prefix(8)).map { .application($0, customIconFilename: nil) },
-            gridSettings: .init(),
-            displaySettings: .init(),
-            usesStoredPages: false
-        )
+        guard let configuration = try? SharedConfiguration.read() else {
+            return LauncherEntry(date: .now, items: [], gridSettings: .init(),
+                                 displaySettings: .init(), usesStoredPages: false,
+                                 isAwaitingConfiguration: true)
+        }
+        return makeEntry(configuration: configuration, applications: AppCatalog.load(), usesStoredPages: false)
     }
 
     func getSnapshot(in context: Context, completion: @escaping @Sendable (LauncherEntry) -> Void) {
@@ -92,7 +98,12 @@ struct LauncherProvider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping @Sendable (Timeline<LauncherEntry>) -> Void) {
         Task { @MainActor in
             let entry = refreshEntry()
-            completion(Timeline(entries: [entry], policy: .never))
+            // A transient read failure must not produce a permanent empty
+            // timeline. WidgetKit controls the actual time of the next request.
+            let policy: TimelineReloadPolicy = entry.isAwaitingConfiguration
+                ? .after(Date.now.addingTimeInterval(5 * 60))
+                : .never
+            completion(Timeline(entries: [entry], policy: policy))
         }
     }
 
@@ -101,7 +112,7 @@ struct LauncherProvider: TimelineProvider {
         SharedConfiguration.logContainerAvailability(component: "Widget")
         do {
             let configuration = try SharedConfiguration.read()
-            let applications = applicationCatalog(for: configuration)
+            let applications = try applicationCatalog(for: configuration)
             let byIdentifier = Dictionary(uniqueKeysWithValues: applications.map { ($0.id, $0) })
             let customWebsiteItems = configuration.items.filter {
                 $0.kind == .website && $0.websiteCustomIconFilename != nil
@@ -123,44 +134,56 @@ struct LauncherProvider: TimelineProvider {
                 }
             }
             SharedConfiguration.logger.notice("Widget read shared configuration: \(configuration.items.count) items, \(ordered.count) available")
-            return LauncherEntry(
+            let entry = LauncherEntry(
                 date: .now,
                 items: ordered,
                 gridSettings: configuration.gridSettings,
                 displaySettings: configuration.displaySettings,
                 usesStoredPages: usesStoredPages
             )
+            Self.lastValidEntry = entry
+            return entry
         } catch {
-            if let fileURL = SharedConfiguration.fileURL, !FileManager.default.fileExists(atPath: fileURL.path) {
-                let applications = applicationCatalog(for: nil)
-                SharedConfiguration.logger.notice("Widget using phase 1 catalog until shared configuration is initialized")
-                return LauncherEntry(
-                    date: .now,
-                    items: applications.map { .application($0, customIconFilename: nil) },
-                    gridSettings: .init(),
-                    displaySettings: .init()
-                )
+            SharedConfiguration.logger.error("Widget shared configuration unavailable: \(String(reflecting: error), privacy: .private)")
+            if let previous = Self.lastValidEntry {
+                return LauncherEntry(date: .now, items: previous.items,
+                                     gridSettings: previous.gridSettings,
+                                     displaySettings: previous.displaySettings,
+                                     usesStoredPages: usesStoredPages,
+                                     isAwaitingConfiguration: true)
             }
-            SharedConfiguration.logger.error("Widget shared configuration unavailable: \(String(reflecting: error), privacy: .public)")
-            return LauncherEntry(date: .now, items: [], gridSettings: .init(), displaySettings: .init())
+            return LauncherEntry(date: .now, items: [], gridSettings: .init(),
+                                 displaySettings: .init(), usesStoredPages: usesStoredPages,
+                                 isAwaitingConfiguration: true)
         }
     }
 
-    @MainActor
-    private func applicationCatalog(for configuration: LauncherConfiguration?) -> [AppRecord] {
-        let selectedApplications = configuration?.items.filter { $0.kind == .application } ?? []
-        guard configuration == nil || !selectedApplications.isEmpty else { return [] }
-
-        var applications = AppCatalog.load()
-        guard configuration != nil else {
-            if applications.isEmpty {
-                do { try AppCatalog.refresh() }
-                catch { AppCatalog.logger.error("Widget catalog initialization failed: \(String(reflecting: error), privacy: .public)") }
-                applications = AppCatalog.load()
+    private func makeEntry(configuration: LauncherConfiguration, applications: [AppRecord],
+                           usesStoredPages: Bool) -> LauncherEntry {
+        let byIdentifier = Dictionary(uniqueKeysWithValues: applications.map { ($0.id, $0) })
+        let ordered = configuration.items.compactMap { item -> LauncherDisplayItem? in
+            switch item.kind {
+            case .application:
+                guard let app = byIdentifier[item.target] else { return nil }
+                return .application(app, customIconFilename: item.customIconFilename)
+            case .website:
+                return .website(item)
             }
-            return applications
         }
+        return LauncherEntry(date: .now, items: ordered,
+                             gridSettings: configuration.gridSettings,
+                             displaySettings: configuration.displaySettings,
+                             usesStoredPages: usesStoredPages)
+    }
 
+    @MainActor
+    private func applicationCatalog(for configuration: LauncherConfiguration) throws -> [AppRecord] {
+        let selectedApplications = configuration.items.filter { $0.kind == .application }
+        guard !selectedApplications.isEmpty else { return [] }
+
+        // Distinguish an unreadable catalog from a valid empty catalog, so an
+        // access failure cannot replace the last valid display with no apps.
+        let applications = try AppCatalog.read()
         let cachedByIdentifier = Dictionary(uniqueKeysWithValues: applications.map { ($0.id, $0) })
         let cacheIsComplete = selectedApplications.allSatisfy { item in
             guard let application = cachedByIdentifier[item.target],
@@ -170,10 +193,8 @@ struct LauncherProvider: TimelineProvider {
         }
         guard !cacheIsComplete else { return applications }
 
-        do { try AppCatalog.refresh() }
-        catch { AppCatalog.logger.error("Widget catalog refresh failed: \(String(reflecting: error), privacy: .public)") }
-        applications = AppCatalog.load()
-        return applications
+        try AppCatalog.refresh()
+        return try AppCatalog.read()
     }
 
 }
@@ -205,7 +226,13 @@ struct LauncherWidgetView: View {
 
             Group {
                 if visibleItems.isEmpty {
-                    ContentUnavailableView("Aucune application", systemImage: "square.grid.2x2", description: Text("Le catalogue des applications est en cours de préparation. Réessayez dans quelques instants."))
+                    ContentUnavailableView(
+                        entry.isAwaitingConfiguration ? "Actualisation en cours" : "Aucun élément",
+                        systemImage: "square.grid.2x2",
+                        description: Text(entry.isAwaitingConfiguration
+                            ? "La sélection sera affichée dès que les données seront accessibles."
+                            : "Choisissez vos applications et liens dans le compagnon.")
+                    )
                 } else {
                     VStack(spacing: 0) {
                         LazyVGrid(columns: columns, spacing: metrics.rowSpacing) {
@@ -255,7 +282,7 @@ struct LauncherWidgetView: View {
 
     private func itemView(_ item: LauncherDisplayItem, metrics: WidgetDisplayMetrics) -> some View {
         VStack(spacing: metrics.itemSpacing) {
-            if let url = item.iconURL, let image = NSImage(contentsOf: url) {
+            if let url = item.iconURL, let image = IconAssetStore.loadCachedImage(from: url) {
                 if item.usesSquircle {
                     WebsiteIconView(image: image, size: metrics.iconSize)
                 } else {

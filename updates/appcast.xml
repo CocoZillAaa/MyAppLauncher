@@ -1,0 +1,26 @@
+<?xml version="1.0" standalone="yes"?><!-- sparkle-sign-warning:
+IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
+--><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>MyAppLauncher</title>
+        <item>
+            <title>1.0.0</title>
+            <pubDate>Sat, 10 Oct 2026 23:15:31 +0200</pubDate>
+            <link>https://github.com/CocoZillAaa/MyAppLauncher</link>
+            <sparkle:version>21</sparkle:version>
+            <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h2>Français — build 21</h2>
+<ul><li>Recherche manuelle des mises à jour depuis le compagnon et son menu.</li><li>Recherche automatique facultative, désactivée par défaut ; chaque installation demande confirmation.</li><li>Mises à jour et liste des versions signées avec Sparkle 2.10.0.</li><li>Fermeture ciblée du widget avant remplacement, puis réenregistrement au premier lancement du nouveau build.</li><li>Conservation de la sélection, de l’ordre, des réglages et des icônes.</li></ul>
+<p>Première installation manuelle depuis un build 20 ou antérieur. macOS 27 et Mac Apple Silicon requis. Version signée Apple Development, non notarisée. Le passage intégré à une version suivante reste à valider sur un second Mac.</p>
+<h2>English — build 21</h2>
+<ul><li>Manual update checks in the companion and its menu.</li><li>Optional automatic checks, disabled by default; installation requires confirmation.</li><li>Signed update archives and feed with Sparkle 2.10.0.</li><li>Targeted widget shutdown before replacement, then registration on the first launch of the new build.</li><li>Selection, order, settings and icons are preserved.</li></ul>
+<p>Manual first installation from build 20 or earlier. Requires macOS 27 and Apple Silicon. Apple Development signed, not notarized. Updating through the integrated updater to a later build still needs validation on a second Mac.</p>
+]]></description>
+            <enclosure url="https://github.com/CocoZillAaa/MyAppLauncher/releases/download/v1.0.0-build21/MyAppLauncher-1.0.0-build21.zip" length="1847234" type="application/octet-stream" sparkle:edSignature="t1RwAOMIsdSOo0CtFw2EPRH5XRXfewFfVyUKTgSQAkdGz55FDq6pC8wNb8egtbS8BY6zTz5VnAaNLCGF5AirDg=="></enclosure>
+        </item>
+    </channel>
+</rss><!-- sparkle-signatures:
+edSignature: tDHYdYJ9Z87LlHd2KohGCkMIGfS14/2sN8RSx4EMSLVhvf661NHnqMuTDjWsbZbChL5HJi2oNjskAeWHmhK8CA==
+length: 2604
+-->

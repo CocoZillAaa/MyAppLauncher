@@ -36,7 +36,8 @@ enum LaunchRoute {
     static func destination(from url: URL) -> Destination? {
         guard url.scheme == scheme,
               let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-              components.user == nil, components.password == nil else { return nil }
+              components.user == nil, components.password == nil,
+              components.path.isEmpty, components.port == nil else { return nil }
 
         if url.host == "configure",
            components.path.isEmpty,

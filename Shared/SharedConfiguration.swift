@@ -4,10 +4,48 @@ import Foundation
 import OSLog
 import UniformTypeIdentifiers
 
+/// Read only regular files, with an allocation bound even if the file grows.
+enum BoundedLocalFile {
+    static func read(_ url: URL, maximumBytes: Int) throws -> Data {
+        let values = try url.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey])
+        guard values.isRegularFile == true, values.isSymbolicLink != true else {
+            throw ReadError.invalidFile
+        }
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+        var data = Data()
+        while let chunk = try handle.read(upToCount: min(64 * 1024, maximumBytes + 1 - data.count)), !chunk.isEmpty {
+            data.append(chunk)
+            guard data.count <= maximumBytes else { throw ReadError.tooLarge }
+        }
+        return data
+    }
+
+    /// Cache paths must remain inside their directory, including symlink resolution.
+    static func confinedURL(in directory: URL, relativePath: String) -> URL? {
+        let root = directory.resolvingSymlinksInPath().standardizedFileURL
+        let candidate = directory.appendingPathComponent(relativePath).standardizedFileURL
+        let resolvedCandidate = root.appendingPathComponent(relativePath).resolvingSymlinksInPath().standardizedFileURL
+        guard resolvedCandidate.path.hasPrefix(root.path + "/") else { return nil }
+        return candidate
+    }
+
+    enum ReadError: LocalizedError {
+        case invalidFile, tooLarge
+        var errorDescription: String? {
+            switch self {
+            case .invalidFile: "Le fichier de données n’est pas un fichier ordinaire."
+            case .tooLarge: "Le fichier de données dépasse la taille autorisée."
+            }
+        }
+    }
+}
+
 enum SharedConfiguration {
     static let groupIdentifier = "96H6RP27K3.myapplauncher"
     static let logger = Logger(subsystem: "com.openai.MyAppLauncher", category: "SharedConfiguration")
     static let filename = "LauncherConfiguration.json"
+    private static let maximumConfigurationBytes = 4 * 1024 * 1024
 
     static var containerURL: URL? {
         FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: groupIdentifier)
@@ -17,7 +55,7 @@ enum SharedConfiguration {
 
     static func read() throws -> LauncherConfiguration {
         guard let fileURL else { throw ConfigurationError.containerUnavailable }
-        let data = try Data(contentsOf: fileURL)
+        let data = try BoundedLocalFile.read(fileURL, maximumBytes: maximumConfigurationBytes)
         let storedConfiguration = try JSONDecoder().decode(LauncherConfiguration.self, from: data)
         let configuration = migrateLegacyWebsiteIcons(in: storedConfiguration)
         try validate(configuration)
@@ -33,6 +71,7 @@ enum SharedConfiguration {
         guard let fileURL else { throw ConfigurationError.containerUnavailable }
         try validate(configuration)
         let data = try JSONEncoder().encode(configuration)
+        guard data.count <= maximumConfigurationBytes else { throw BoundedLocalFile.ReadError.tooLarge }
         try data.write(to: fileURL, options: .atomic)
         guard try read() == configuration else { throw ConfigurationError.verificationFailed }
         logger.notice("Shared configuration saved: \(configuration.items.count) items")
@@ -95,7 +134,7 @@ enum SharedConfiguration {
 
     static func logContainerAvailability(component: String) {
         if let containerURL {
-            logger.notice("\(component, privacy: .public) app group available: \(containerURL.path, privacy: .public)")
+            logger.notice("\(component, privacy: .public) app group available: \(containerURL.path, privacy: .private)")
         } else {
             logger.error("\(component, privacy: .public) app group unavailable")
         }
@@ -245,27 +284,58 @@ enum IconAssetStore {
     private static let maximumCustomImageSize = 1 * 1024 * 1024
     private static let maximumCustomImageSide = 1024
     private static let outputSide = 256
+    private static let maximumDownloadedImageSide = 8192
+    private static let maximumCachedImageBytes = 1 * 1024 * 1024
 
     static func url(for filename: String?) -> URL? {
         guard let filename, isValidFilename(filename),
               let container = SharedConfiguration.containerURL else { return nil }
-        return container.appendingPathComponent(directoryName, isDirectory: true)
-            .appendingPathComponent(filename, isDirectory: false)
+        return BoundedLocalFile.confinedURL(in: container, relativePath: "\(directoryName)/\(filename)")
     }
 
     static func isValidFilename(_ filename: String) -> Bool {
         filename.hasSuffix(".png") &&
         URL(fileURLWithPath: filename).lastPathComponent == filename &&
-        !filename.isEmpty
+        !filename.isEmpty && filename.utf8.count <= 512 &&
+        filename.unicodeScalars.allSatisfy { !CharacterSet.controlCharacters.contains($0) }
+    }
+
+    /// All generated caches are PNGs. Bound decoding and ignore damaged caches.
+    static func loadCachedImage(from url: URL) -> NSImage? {
+        guard let container = SharedConfiguration.containerURL else { return nil }
+        let prefix = container.standardizedFileURL.path + "/"
+        guard url.standardizedFileURL.path.hasPrefix(prefix),
+              let confined = BoundedLocalFile.confinedURL(in: container, relativePath:
+                String(url.standardizedFileURL.path.dropFirst(prefix.count))),
+              confined.standardizedFileURL == url.standardizedFileURL,
+              let data = try? BoundedLocalFile.read(url, maximumBytes: maximumCachedImageBytes),
+              let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary),
+              CGImageSourceGetType(source) as String? == UTType.png.identifier,
+              hasSafeDimensions(source, maximumSide: maximumCustomImageSide),
+              let image = thumbnail(from: source) else { return nil }
+        return NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
+    }
+
+    static func isValidDownloadedImage(_ data: Data) -> Bool {
+        guard data.count <= maximumSourceSize,
+              let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary) else { return false }
+        return hasSafeDimensions(source, maximumSide: maximumDownloadedImageSide) && thumbnail(from: source) != nil
+    }
+
+    private static func hasSafeDimensions(_ source: CGImageSource, maximumSide: Int) -> Bool {
+        guard let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+              let width = (properties[kCGImagePropertyPixelWidth] as? NSNumber)?.int64Value,
+              let height = (properties[kCGImagePropertyPixelHeight] as? NSNumber)?.int64Value else { return false }
+        return width > 0 && height > 0 && width <= maximumSide && height <= maximumSide
     }
 
     static func saveImage(from sourceURL: URL) throws -> String {
         let hasAccess = sourceURL.startAccessingSecurityScopedResource()
         defer { if hasAccess { sourceURL.stopAccessingSecurityScopedResource() } }
-        let attributes = try FileManager.default.attributesOfItem(atPath: sourceURL.path)
-        guard let size = attributes[.size] as? NSNumber else { throw IconAssetError.invalidImage }
-        guard size.int64Value <= Int64(maximumCustomImageSize) else { throw IconAssetError.customImageTooLarge }
-        guard let source = CGImageSourceCreateWithURL(sourceURL as CFURL, [kCGImageSourceShouldCache: false] as CFDictionary) else {
+        let data: Data
+        do { data = try BoundedLocalFile.read(sourceURL, maximumBytes: maximumCustomImageSize) }
+        catch BoundedLocalFile.ReadError.tooLarge { throw IconAssetError.customImageTooLarge }
+        guard let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary) else {
             throw IconAssetError.invalidImage
         }
         return try save(image: customThumbnail(from: source))
@@ -274,6 +344,7 @@ enum IconAssetStore {
     static func saveImage(data: Data) throws -> String {
         guard data.count <= maximumSourceSize,
               let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary),
+              hasSafeDimensions(source, maximumSide: maximumDownloadedImageSide),
               let image = thumbnail(from: source) else {
             throw IconAssetError.invalidImage
         }
@@ -307,7 +378,9 @@ enum IconAssetStore {
 
     private static func save(image: CGImage) throws -> String {
         guard let container = SharedConfiguration.containerURL else { throw IconAssetError.containerUnavailable }
-        let directory = container.appendingPathComponent(directoryName, isDirectory: true)
+        guard let directory = BoundedLocalFile.confinedURL(in: container, relativePath: directoryName) else {
+            throw IconAssetError.containerUnavailable
+        }
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let filename = "\(UUID().uuidString).png"
         let destinationURL = directory.appendingPathComponent(filename)

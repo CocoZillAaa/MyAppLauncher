@@ -272,7 +272,7 @@ final class ConfigurationStore {
 
         do {
             guard let imageData = try await WebsiteIconFetcher.fetch(for: websiteURL) else {
-                SharedConfiguration.logger.notice("No website icon found for \(websiteURL.host ?? "unknown", privacy: .public)")
+                SharedConfiguration.logger.notice("No website icon found for \(websiteURL.host ?? "unknown", privacy: .private)")
                 return
             }
             let filename = try IconAssetStore.saveImage(data: imageData)
@@ -280,16 +280,17 @@ final class ConfigurationStore {
             var updated = items
             updated[index].websiteIconFilename = filename
             _ = save(updated)
-            SharedConfiguration.logger.notice("Website icon saved for \(websiteURL.host ?? "unknown", privacy: .public)")
+            SharedConfiguration.logger.notice("Website icon saved for \(websiteURL.host ?? "unknown", privacy: .private)")
         } catch {
-            SharedConfiguration.logger.error("Website icon fetch failed: \(String(reflecting: error), privacy: .public)")
+            SharedConfiguration.logger.error("Website icon fetch failed: \(String(reflecting: error), privacy: .private)")
         }
     }
 }
 
-private enum WebsiteIconFetcher {
+enum WebsiteIconFetcher {
     private static let maximumHTMLBytes = 2 * 1024 * 1024
     private static let maximumIconBytes = 8 * 1024 * 1024
+    private static let maximumIconAttempts = 8
 
     static func fetch(for pageURL: URL) async throws -> Data? {
         let configuration = URLSessionConfiguration.ephemeral
@@ -311,25 +312,36 @@ private enum WebsiteIconFetcher {
               pageMIME == "text/html" || pageMIME == "application/xhtml+xml" else { return nil }
 
         let resolvedPageURL = pageResponse.url ?? pageURL
+        guard LaunchRoute.validWebsiteURL(resolvedPageURL.absoluteString) != nil else { return nil }
         let html = String(decoding: htmlData, as: UTF8.self)
-        var candidates = iconLinks(in: html, relativeTo: resolvedPageURL)
-        if let favicon = URL(string: "/favicon.ico", relativeTo: resolvedPageURL)?.absoluteURL {
-            candidates.append(WebsiteIconCandidate(url: favicon, pixelScore: 16, sourceOrder: candidates.count))
-        }
-
-        var seen = Set<String>()
-        for candidate in candidates.sorted(by: { $0.pixelScore == $1.pixelScore ? $0.sourceOrder < $1.sourceOrder : $0.pixelScore > $1.pixelScore })
-        where seen.insert(candidate.url.absoluteString).inserted {
-            let iconURL = candidate.url
+        for iconURL in iconURLs(in: html, relativeTo: resolvedPageURL) {
             var iconRequest = URLRequest(url: iconURL)
             iconRequest.setValue("image/*", forHTTPHeaderField: "Accept")
             guard let (data, response) = try? await read(iconRequest, from: session, maximumBytes: maximumIconBytes),
                   let http = response as? HTTPURLResponse,
                   (200..<300).contains(http.statusCode),
-                  NSImage(data: data) != nil else { continue }
+                  response.url.flatMap({ LaunchRoute.validWebsiteURL($0.absoluteString) }) != nil,
+                  IconAssetStore.isValidDownloadedImage(data) else { continue }
             return data
         }
         return nil
+    }
+
+    /// Keep requests finite and reserve one attempt for the standard favicon.
+    static func iconURLs(in html: String, relativeTo pageURL: URL) -> [URL] {
+        let candidates = iconLinks(in: html, relativeTo: pageURL).sorted {
+            $0.pixelScore == $1.pixelScore ? $0.sourceOrder < $1.sourceOrder : $0.pixelScore > $1.pixelScore
+        }
+        var seen = Set<String>()
+        var urls: [URL] = []
+        for candidate in candidates {
+            guard urls.count < maximumIconAttempts - 1 else { break }
+            guard seen.insert(candidate.url.absoluteString).inserted else { continue }
+            urls.append(candidate.url)
+        }
+        if let favicon = URL(string: "/favicon.ico", relativeTo: pageURL)?.absoluteURL,
+           seen.insert(favicon.absoluteString).inserted { urls.append(favicon) }
+        return urls
     }
 
     private static func read(_ request: URLRequest, from session: URLSession, maximumBytes: Int) async throws -> (Data, URLResponse) {
@@ -345,7 +357,7 @@ private enum WebsiteIconFetcher {
     }
 
     private static func iconLinks(in html: String, relativeTo pageURL: URL) -> [WebsiteIconCandidate] {
-        let tagPattern = #"(?is)<link\b[^>]*>"#
+        let tagPattern = #"(?is)<link\b[^>]{0,8192}>"#
         let attributePattern = #"(?is)([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))"#
         guard let tagRegex = try? NSRegularExpression(pattern: tagPattern),
               let attributeRegex = try? NSRegularExpression(pattern: attributePattern) else { return [] }
@@ -353,6 +365,7 @@ private enum WebsiteIconFetcher {
         var results: [WebsiteIconCandidate] = []
 
         for tagMatch in tagRegex.matches(in: html, range: fullRange) {
+            guard results.count < 128 else { break }
             guard let tagRange = Range(tagMatch.range, in: html) else { continue }
             let tag = String(html[tagRange])
             let tagNSRange = NSRange(tag.startIndex..., in: tag)

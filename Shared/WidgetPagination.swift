@@ -132,10 +132,10 @@ enum WidgetPageStateStore {
             guard let url = fileURL(familyRawValue: family.rawValue),
                   FileManager.default.fileExists(atPath: url.path) else { continue }
             do {
-                let state = try JSONDecoder().decode(State.self, from: Data(contentsOf: url))
+                let state = try JSONDecoder().decode(State.self, from: BoundedLocalFile.read(url, maximumBytes: 4096))
                 if state.revision == revision { result[family.rawValue] = max(0, state.pageIndex) }
             } catch {
-                SharedConfiguration.logger.error("Widget page state unreadable; using first page: \(String(reflecting: error), privacy: .public)")
+                SharedConfiguration.logger.error("Widget page state unreadable; using first page: \(String(reflecting: error), privacy: .private)")
             }
         }
         return result

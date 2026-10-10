@@ -15,3 +15,7 @@ DerivedData/
 *.provisionprofile
 .env
 .env.*
+
+# Signing keys stay outside the repository
+*.key
+*.pem

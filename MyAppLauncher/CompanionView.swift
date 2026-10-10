@@ -3,6 +3,8 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct CompanionView: View {
+    @ObservedObject var updates: LauncherUpdates
+    @State private var showingUpdates = false
     @State private var store = ConfigurationStore()
     @State private var search = ""
     @FocusState private var searchIsFocused: Bool
@@ -111,6 +113,12 @@ struct CompanionView: View {
             Spacer()
             Text("\(store.items.count) éléments dans le widget")
                 .foregroundStyle(.secondary)
+            Button { showingUpdates.toggle() } label: {
+                Label("Mises à jour", systemImage: "arrow.triangle.2.circlepath")
+            }
+            .popover(isPresented: $showingUpdates) {
+                LauncherUpdateSettings(updates: updates)
+            }
         }
         .padding(16)
     }
@@ -330,7 +338,7 @@ struct CompanionView: View {
             List(selection: $selectedCatalogIDs) {
                 ForEach(filteredApplications) { application in
                     HStack(spacing: 10) {
-                    if let iconURL = application.iconURL, let image = NSImage(contentsOf: iconURL) {
+                    if let iconURL = application.iconURL, let image = IconAssetStore.loadCachedImage(from: iconURL) {
                         Image(nsImage: image).resizable().scaledToFit().frame(width: 24, height: 24)
                     } else {
                         Image(systemName: "app.fill").frame(width: 24, height: 24)
@@ -410,7 +418,7 @@ struct CompanionView: View {
         } else {
             IconAssetStore.url(for: item.websiteCustomIconFilename) ?? IconAssetStore.url(for: item.websiteIconFilename)
         }
-        if let iconURL, let image = NSImage(contentsOf: iconURL) {
+        if let iconURL, let image = IconAssetStore.loadCachedImage(from: iconURL) {
             if item.kind == .website || item.customIconFilename != nil {
                 WebsiteIconView(image: image, size: 26)
             } else {

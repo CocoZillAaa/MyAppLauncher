@@ -15,7 +15,7 @@ struct AppRecord: Codable, Identifiable, Hashable {
     // independent catalog identity without changing existing selected items.
     var id: String { installationIdentifier ?? bundleIdentifier }
     var bundleURL: URL { URL(fileURLWithPath: bundlePath) }
-    var iconURL: URL? { AppCatalog.containerURL?.appendingPathComponent(iconFilename) }
+    var iconURL: URL? { AppCatalog.iconURL(for: iconFilename) }
     var isAuxiliary: Bool {
         isBackgroundComponent || AppCatalog.looksAuxiliary(name: name, bundleIdentifier: bundleIdentifier)
     }
@@ -61,7 +61,8 @@ enum AppCatalog {
     }
 
     static var containerURL: URL? {
-        SharedConfiguration.containerURL?.appendingPathComponent(directoryName, isDirectory: true)
+        guard let shared = SharedConfiguration.containerURL else { return nil }
+        return BoundedLocalFile.confinedURL(in: shared, relativePath: directoryName)
     }
 
     static var manifestURL: URL? {
@@ -70,15 +71,33 @@ enum AppCatalog {
 
     static func read() throws -> [AppRecord] {
         guard let url = manifestURL else { throw CatalogError.containerUnavailable }
-        let data = try Data(contentsOf: url)
-        return try JSONDecoder().decode([AppRecord].self, from: data)
-            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        let data = try BoundedLocalFile.read(url, maximumBytes: 8 * 1024 * 1024)
+        let records = try JSONDecoder().decode([AppRecord].self, from: data)
+        guard Set(records.map(\.id)).count == records.count,
+              records.allSatisfy({
+                  LaunchRoute.isValidBundleIdentifier($0.id) &&
+                  LaunchRoute.isValidBundleIdentifier($0.bundleIdentifier) &&
+                  $0.bundlePath.hasPrefix("/") && $0.bundleURL.pathExtension.lowercased() == "app" &&
+                  isValidIconPath($0.iconFilename)
+              }) else { throw CatalogError.invalidCatalog }
+        return records.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+    }
+
+    private static func isValidIconPath(_ path: String) -> Bool {
+        let parts = path.split(separator: "/", omittingEmptySubsequences: false)
+        return parts.count == 2 && parts[0] == Substring(iconDirectory) &&
+            IconAssetStore.isValidFilename(String(parts[1]))
+    }
+
+    static func iconURL(for path: String) -> URL? {
+        guard isValidIconPath(path), let container = containerURL else { return nil }
+        return BoundedLocalFile.confinedURL(in: container, relativePath: path)
     }
 
     static func load() -> [AppRecord] {
         do { return try read() }
         catch {
-            logger.error("Catalog read failed: \(String(reflecting: error), privacy: .public)")
+            logger.error("Catalog read failed: \(String(reflecting: error), privacy: .private)")
             return []
         }
     }
@@ -130,7 +149,9 @@ enum AppCatalog {
         guard let container = containerURL else { throw CatalogError.containerUnavailable }
         logger.notice("Refreshing local catalog")
         let manager = FileManager.default
-        let iconsURL = container.appendingPathComponent(iconDirectory, isDirectory: true)
+        guard let iconsURL = BoundedLocalFile.confinedURL(in: container, relativePath: iconDirectory) else {
+            throw CatalogError.containerUnavailable
+        }
         try manager.createDirectory(at: iconsURL, withIntermediateDirectories: true)
 
         let bundleURLs = discoverApplications(in: roots, fileManager: manager)
@@ -147,7 +168,8 @@ enum AppCatalog {
         var records: [AppRecord] = []
         for url in preferredURLs {
             guard let bundle = Bundle(url: url),
-                  let identifier = bundle.bundleIdentifier else { continue }
+                  let identifier = bundle.bundleIdentifier,
+                  LaunchRoute.isValidBundleIdentifier(identifier) else { continue }
             let name = applicationName(bundle: bundle, url: url)
             let previous = previousRecords.first { $0.bundlePath == url.path && $0.bundleIdentifier == identifier }
             let relocated = previousRecords.filter {
@@ -189,6 +211,7 @@ enum AppCatalog {
         records.sort { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
         let url = container.appendingPathComponent(manifestName)
         let data = try JSONEncoder().encode(records)
+        guard data.count <= 8 * 1024 * 1024 else { throw BoundedLocalFile.ReadError.tooLarge }
         try data.write(to: url, options: .atomic)
         let saved = try read()
         guard saved == records else { throw CatalogError.verificationFailed }
@@ -208,7 +231,7 @@ enum AppCatalog {
                 includingPropertiesForKeys: resourceKeys,
                 options: [.skipsHiddenFiles],
                 errorHandler: { url, error in
-                    logger.error("Application scan skipped an inaccessible path: \(url.path, privacy: .public), \(String(reflecting: error), privacy: .public)")
+                    logger.error("Application scan skipped an inaccessible path: \(url.path, privacy: .private), \(String(reflecting: error), privacy: .private)")
                     return true
                 }
             ) else { continue }
@@ -229,11 +252,12 @@ enum AppCatalog {
     }
 
     enum CatalogError: LocalizedError {
-        case containerUnavailable, verificationFailed
+        case containerUnavailable, verificationFailed, invalidCatalog
         var errorDescription: String? {
             switch self {
             case .containerUnavailable: "Le dossier de cache des applications est inaccessible."
             case .verificationFailed: "Le catalogue enregistré n’a pas pu être vérifié."
+            case .invalidCatalog: "Le catalogue contient une entrée invalide ou en double. Actualisez la bibliothèque."
             }
         }
     }
