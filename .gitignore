@@ -1,0 +1,17 @@
+.DS_Store
+work/
+Build/
+Install/
+Backups/
+Release/
+DerivedData/
+**/xcuserdata/
+*.xcuserstate
+*.app/
+*.zip
+*.p12
+*.pfx
+*.mobileprovision
+*.provisionprofile
+.env
+.env.*

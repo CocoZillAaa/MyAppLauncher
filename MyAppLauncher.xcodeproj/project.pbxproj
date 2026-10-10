@@ -1,0 +1,443 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000000000000000000001 /* MyAppLauncherApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* MyAppLauncherApp.swift */; };
+		A10000000000000000000002 /* AppCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* AppCatalog.swift */; };
+		A10000000000000000000003 /* LaunchRouting.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* LaunchRouting.swift */; };
+		A10000000000000000000004 /* LauncherWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* LauncherWidget.swift */; };
+		A10000000000000000000005 /* AppCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* AppCatalog.swift */; };
+		A10000000000000000000006 /* LaunchRouting.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* LaunchRouting.swift */; };
+		A10000000000000000000007 /* MyAppLauncherWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* MyAppLauncherWidget.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		A10000000000000000000008 /* SharedConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* SharedConfiguration.swift */; };
+		A10000000000000000000009 /* SharedConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* SharedConfiguration.swift */; };
+		A1000000000000000000000A /* ConfigurationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* ConfigurationStore.swift */; };
+		A1000000000000000000000B /* CompanionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000D /* CompanionView.swift */; };
+		A1000000000000000000000C /* WidgetPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* WidgetPreviewView.swift */; };
+		A1000000000000000000000D /* WidgetGridLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000F /* WidgetGridLayout.swift */; };
+		A1000000000000000000000E /* WidgetGridLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000F /* WidgetGridLayout.swift */; };
+		A1000000000000000000000F /* WebsiteIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* WebsiteIconView.swift */; };
+		A10000000000000000000010 /* WebsiteIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* WebsiteIconView.swift */; };
+		A10000000000000000000011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000011 /* Assets.xcassets */; };
+		A10000000000000000000012 /* WidgetPagination.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000012 /* WidgetPagination.swift */; };
+		A10000000000000000000013 /* WidgetPagination.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000012 /* WidgetPagination.swift */; };
+		A10000000000000000000014 /* Assets.xcassets in Widget Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000011 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A30000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A40000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A50000000000000000000002;
+			remoteInfo = MyAppLauncherWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A60000000000000000000001 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A10000000000000000000007 /* MyAppLauncherWidget.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		A20000000000000000000001 /* MyAppLauncherApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyAppLauncherApp.swift; sourceTree = "<group>"; };
+		A20000000000000000000002 /* LauncherWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LauncherWidget.swift; sourceTree = "<group>"; };
+		A20000000000000000000003 /* AppCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCatalog.swift; sourceTree = "<group>"; };
+		A20000000000000000000004 /* LaunchRouting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchRouting.swift; sourceTree = "<group>"; };
+		A20000000000000000000005 /* MyAppLauncher.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = MyAppLauncher.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A20000000000000000000006 /* MyAppLauncherWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; path = MyAppLauncherWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A20000000000000000000007 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A20000000000000000000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A20000000000000000000009 /* MyAppLauncher.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MyAppLauncher.entitlements; sourceTree = "<group>"; };
+		A2000000000000000000000A /* MyAppLauncherWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MyAppLauncherWidget.entitlements; sourceTree = "<group>"; };
+		A2000000000000000000000B /* SharedConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedConfiguration.swift; sourceTree = "<group>"; };
+		A2000000000000000000000C /* ConfigurationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationStore.swift; sourceTree = "<group>"; };
+		A2000000000000000000000D /* CompanionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionView.swift; sourceTree = "<group>"; };
+		A2000000000000000000000E /* WidgetPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetPreviewView.swift; sourceTree = "<group>"; };
+		A2000000000000000000000F /* WidgetGridLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetGridLayout.swift; sourceTree = "<group>"; };
+		A20000000000000000000010 /* WebsiteIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsiteIconView.swift; sourceTree = "<group>"; };
+		A20000000000000000000011 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A20000000000000000000012 /* WidgetPagination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetPagination.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A70000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A70000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A60000000000000000000003 /* Widget Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000014 /* Assets.xcassets in Widget Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A60000000000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000011 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXGroup section */
+		A80000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				A80000000000000000000002 /* MyAppLauncher */,
+				A80000000000000000000003 /* MyAppLauncherWidget */,
+				A80000000000000000000004 /* Shared */,
+				A80000000000000000000005 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A80000000000000000000002 /* MyAppLauncher */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000001 /* MyAppLauncherApp.swift */,
+				A2000000000000000000000C /* ConfigurationStore.swift */,
+				A2000000000000000000000D /* CompanionView.swift */,
+				A2000000000000000000000E /* WidgetPreviewView.swift */,
+				A20000000000000000000011 /* Assets.xcassets */,
+				A20000000000000000000007 /* Info.plist */,
+				A20000000000000000000009 /* MyAppLauncher.entitlements */,
+			);
+			path = MyAppLauncher;
+			sourceTree = "<group>";
+		};
+		A80000000000000000000003 /* MyAppLauncherWidget */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000002 /* LauncherWidget.swift */,
+				A20000000000000000000008 /* Info.plist */,
+				A2000000000000000000000A /* MyAppLauncherWidget.entitlements */,
+			);
+			path = MyAppLauncherWidget;
+			sourceTree = "<group>";
+		};
+		A80000000000000000000004 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000003 /* AppCatalog.swift */,
+				A20000000000000000000004 /* LaunchRouting.swift */,
+				A2000000000000000000000B /* SharedConfiguration.swift */,
+				A2000000000000000000000F /* WidgetGridLayout.swift */,
+				A20000000000000000000010 /* WebsiteIconView.swift */,
+				A20000000000000000000012 /* WidgetPagination.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		A80000000000000000000005 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000005 /* MyAppLauncher.app */,
+				A20000000000000000000006 /* MyAppLauncherWidget.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A50000000000000000000001 /* MyAppLauncher */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A90000000000000000000001 /* Build configuration list for PBXNativeTarget "MyAppLauncher" */;
+			buildPhases = (
+				AA0000000000000000000001 /* Sources */,
+				A70000000000000000000001 /* Frameworks */,
+				A60000000000000000000002 /* Resources */,
+				A60000000000000000000001 /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AB0000000000000000000001 /* PBXTargetDependency */,
+			);
+			name = MyAppLauncher;
+			productName = MyAppLauncher;
+			productReference = A20000000000000000000005 /* MyAppLauncher.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A50000000000000000000002 /* MyAppLauncherWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A90000000000000000000002 /* Build configuration list for PBXNativeTarget "MyAppLauncherWidget" */;
+			buildPhases = (
+				AA0000000000000000000002 /* Sources */,
+				A70000000000000000000002 /* Frameworks */,
+				A60000000000000000000003 /* Widget Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MyAppLauncherWidget;
+			productName = MyAppLauncherWidget;
+			productReference = A20000000000000000000006 /* MyAppLauncherWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A40000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2700;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					A50000000000000000000001 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					A50000000000000000000002 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+				};
+			};
+			buildConfigurationList = A90000000000000000000003 /* Build configuration list for PBXProject "MyAppLauncher" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A80000000000000000000001;
+			productRefGroup = A80000000000000000000005 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A50000000000000000000001 /* MyAppLauncher */,
+				A50000000000000000000002 /* MyAppLauncherWidget */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AA0000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000001 /* MyAppLauncherApp.swift in Sources */,
+				A10000000000000000000002 /* AppCatalog.swift in Sources */,
+				A10000000000000000000003 /* LaunchRouting.swift in Sources */,
+				A10000000000000000000008 /* SharedConfiguration.swift in Sources */,
+				A1000000000000000000000A /* ConfigurationStore.swift in Sources */,
+				A1000000000000000000000B /* CompanionView.swift in Sources */,
+				A1000000000000000000000C /* WidgetPreviewView.swift in Sources */,
+				A1000000000000000000000D /* WidgetGridLayout.swift in Sources */,
+				A1000000000000000000000F /* WebsiteIconView.swift in Sources */,
+				A10000000000000000000012 /* WidgetPagination.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA0000000000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000004 /* LauncherWidget.swift in Sources */,
+				A10000000000000000000005 /* AppCatalog.swift in Sources */,
+				A10000000000000000000006 /* LaunchRouting.swift in Sources */,
+				A10000000000000000000009 /* SharedConfiguration.swift in Sources */,
+				A1000000000000000000000E /* WidgetGridLayout.swift in Sources */,
+				A10000000000000000000010 /* WebsiteIconView.swift in Sources */,
+				A10000000000000000000013 /* WidgetPagination.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AB0000000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A50000000000000000000002 /* MyAppLauncherWidget */;
+			targetProxy = A30000000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		AC0000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		AC0000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		AC0000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				CODE_SIGN_ENTITLEMENTS = MyAppLauncher/MyAppLauncher.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 96H6RP27K3;
+				ENABLE_APP_SANDBOX = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = MyAppLauncher/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 27.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.openai.MyAppLauncher;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		AC0000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = MyAppLauncher/MyAppLauncher.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 96H6RP27K3;
+				ENABLE_APP_SANDBOX = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = MyAppLauncher/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 27.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.openai.MyAppLauncher;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		AC0000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = MyAppLauncherWidget/MyAppLauncherWidget.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 96H6RP27K3;
+				ENABLE_APP_SANDBOX = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = MyAppLauncherWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 27.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.openai.MyAppLauncher.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		AC0000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = MyAppLauncherWidget/MyAppLauncherWidget.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 96H6RP27K3;
+				ENABLE_APP_SANDBOX = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = MyAppLauncherWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 27.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.openai.MyAppLauncher.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A90000000000000000000001 /* Build configuration list for PBXNativeTarget "MyAppLauncher" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC0000000000000000000003 /* Debug */,
+				AC0000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A90000000000000000000002 /* Build configuration list for PBXNativeTarget "MyAppLauncherWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC0000000000000000000005 /* Debug */,
+				AC0000000000000000000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A90000000000000000000003 /* Build configuration list for PBXProject "MyAppLauncher" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC0000000000000000000001 /* Debug */,
+				AC0000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A40000000000000000000001 /* Project object */;
+}
