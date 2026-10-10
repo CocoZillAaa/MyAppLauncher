@@ -33,7 +33,17 @@ Cinq formats : Petit, Moyen, Grand, Très grand et Très grand vertical. Le fond
 4. Ajoutez les applications et liens souhaités.
 5. Faites un clic droit sur le bureau, choisissez **Modifier les widgets…**, cherchez **MyAppLauncher** et ajoutez un format.
 
-Si macOS bloque l’ouverture, consultez les [instructions Apple](https://support.apple.com/fr-fr/102445). Une autorisation dans **Réglages Système > Confidentialité et sécurité** peut être proposée ; elle ne garantit pas la compatibilité de ce build de développement avec tous les Mac.
+### Autoriser le premier lancement sur macOS
+
+Cette version n’est pas notarisée. Pour la copie provenant de ce dépôt, si macOS affiche « Apple n’a pas pu confirmer que MyAppLauncher ne contenait pas de logiciel malveillant » :
+
+1. Depuis **Applications**, essayez d’ouvrir **MyAppLauncher**.
+2. Dans l’alerte, cliquez sur **Terminé** pour conserver l’app.
+3. Ouvrez **Réglages Système → Confidentialité et sécurité** et descendez jusqu’à **Sécurité**.
+4. À côté du message concernant **MyAppLauncher**, cliquez sur **Ouvrir quand même**.
+5. Authentifiez-vous si macOS le demande, puis confirmez avec **Ouvrir**.
+
+L’autorisation concerne cette application. Vous pouvez ensuite l’ouvrir normalement et ajouter son widget. Si le bouton n’apparaît pas, réessayez d’ouvrir l’app avant de retourner dans les réglages. Sur un Mac administré par une entreprise, contactez l’administrateur si l’option est indisponible. [Procédure Apple](https://support.apple.com/fr-fr/102445).
 
 ### Utiliser et mettre à jour
 
@@ -84,7 +94,17 @@ Five sizes: Small, Medium, Large, Extra Large and Extra Large Portrait. The widg
 4. Add your apps and links.
 5. Right-click the desktop, choose **Edit Widgets…**, search for **MyAppLauncher** and add a size.
 
-If macOS blocks the app, follow [Apple’s instructions](https://support.apple.com/en-us/102445). **System Settings > Privacy & Security** may offer an approval option; this does not guarantee that this development build will work on every Mac.
+### Allow the first launch on macOS
+
+This version is not notarized. For the copy obtained from this repository, if macOS says that Apple could not verify MyAppLauncher is free of malware:
+
+1. Try opening **MyAppLauncher** from **Applications**.
+2. In the alert, click **Done** to keep the app.
+3. Open **System Settings → Privacy & Security** and scroll to **Security**.
+4. Next to the message about **MyAppLauncher**, click **Open Anyway**.
+5. Authenticate if prompted, then confirm with **Open**.
+
+Approval applies to this app. You can then open it normally and add its widget. If the button is missing, try opening the app again before returning to settings. On a company-managed Mac, contact your administrator if the option is unavailable. [Apple’s instructions](https://support.apple.com/en-us/102445).
 
 ### Use and update
 
