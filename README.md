@@ -25,7 +25,7 @@ Cinq formats : Petit, Moyen, Grand, Très grand et Très grand vertical. Le fond
 
 ### Installer
 
-**Prérequis : Mac Apple Silicon et macOS 27 ou ultérieur.** Le fichier fourni est un build de développement signé Apple Development, non notarisé. Son installation sur un autre Mac n’a pas encore été validée et macOS peut bloquer son ouverture.
+**Prérequis : Mac Apple Silicon et macOS 27 ou ultérieur.** Le fichier fourni est un build de développement signé Apple Development, non notarisé. L’ouverture du compagnon, l’installation du widget et ses interactions ont été confirmées par l’utilisateur sur un second Mac après autorisation manuelle dans les réglages de sécurité. macOS peut bloquer le premier lancement.
 
 1. Dans [Releases](https://github.com/CocoZillAaa/MyAppLauncher/releases/latest), téléchargez `MyAppLauncher-1.0.0-build18.zip`.
 2. Décompressez-le et glissez `MyAppLauncher.app` dans **Applications**.
@@ -76,7 +76,7 @@ Five sizes: Small, Medium, Large, Extra Large and Extra Large Portrait. The widg
 
 ### Install
 
-**Requirements: Apple Silicon Mac and macOS 27 or later.** The download is an Apple Development signed build and is not notarized. Installation on another Mac has not yet been validated, and macOS may block it.
+**Requirements: Apple Silicon Mac and macOS 27 or later.** The download is an Apple Development signed build and is not notarized. The user confirmed that the companion opens and the widget installs and responds on a second Mac after manual approval in security settings. macOS may block the first launch.
 
 1. Download `MyAppLauncher-1.0.0-build18.zip` from [Releases](https://github.com/CocoZillAaa/MyAppLauncher/releases/latest).
 2. Extract it and drag `MyAppLauncher.app` into **Applications**.
