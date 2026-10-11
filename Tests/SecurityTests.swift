@@ -143,6 +143,19 @@ struct SecurityTests {
         let validURL = try source("valid.png", data: pngData)
         let imported = try IconAssetStore.saveImage(from: validURL)
         check(IconAssetStore.url(for: imported).flatMap(IconAssetStore.loadCachedImage) != nil, "Valid square transparent PNG imports and loads")
+        let importedURL = IconAssetStore.url(for: imported)!
+        let firstDecoded = IconAssetStore.loadCachedCGImage(from: importedURL)!
+        let secondDecoded = IconAssetStore.loadCachedCGImage(from: importedURL)!
+        check(firstDecoded === secondDecoded, "Unchanged validated PNG reuses its decoded image")
+        let oldModificationDate = try manager.attributesOfItem(atPath: importedURL.path)[.modificationDate] as! Date
+        try png(width: 128, height: 128).write(to: importedURL, options: .atomic)
+        try manager.setAttributes([.modificationDate: oldModificationDate], ofItemAtPath: importedURL.path)
+        let replacedDecoded = IconAssetStore.loadCachedCGImage(from: importedURL)!
+        check(firstDecoded !== replacedDecoded && replacedDecoded.width == 128,
+              "Replacing an icon at the same path and modification date invalidates the decoded cache")
+        try pngData.write(to: importedURL, options: .atomic)
+        check(IconAssetStore.loadCachedCGImage(from: importedURL)?.width == 64,
+              "Restoring an icon invalidates the prior version without restarting")
         let atLimit = try source("limit.png", data: png(width: 1024, height: 1024))
         check(!(try IconAssetStore.saveImage(from: atLimit)).isEmpty, "1024 x 1024 custom image accepted")
         let rectangular = try source("rectangle.png", data: png(width: 64, height: 32))

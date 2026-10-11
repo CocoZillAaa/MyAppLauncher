@@ -1,4 +1,5 @@
 import AppKit
+import Darwin
 import ImageIO
 import Foundation
 import OSLog
@@ -30,6 +31,21 @@ enum BoundedLocalFile {
         return candidate
     }
 
+    /// Includes inode and nanosecond timestamps: atomic replacement or a change
+    /// with the same size/modification date must invalidate a decoded image.
+    static func identity(of url: URL, regularFileOnly: Bool = true, maximumBytes: Int? = nil) -> String? {
+        var info = stat()
+        let result = url.withUnsafeFileSystemRepresentation { path in
+            guard let path else { return Int32(-1) }
+            return Darwin.lstat(path, &info)
+        }
+        let kind = info.st_mode & S_IFMT
+        guard result == 0, kind == S_IFREG || (!regularFileOnly && kind == S_IFDIR),
+              info.st_size >= 0,
+              maximumBytes.map({ info.st_size <= Int64($0) }) ?? true else { return nil }
+        return "\(info.st_dev):\(info.st_ino):\(info.st_size):\(info.st_mtimespec.tv_sec):\(info.st_mtimespec.tv_nsec):\(info.st_ctimespec.tv_sec):\(info.st_ctimespec.tv_nsec)"
+    }
+
     enum ReadError: LocalizedError {
         case invalidFile, tooLarge
         var errorDescription: String? {
@@ -37,6 +53,48 @@ enum BoundedLocalFile {
             case .invalidFile: "Le fichier de données n’est pas un fichier ordinaire."
             case .tooLarge: "Le fichier de données dépasse la taille autorisée."
             }
+        }
+    }
+}
+
+/// Every mutable field is protected by the lock; cached CGImages are immutable.
+/// NSImage wrappers are created for each caller, rather than shared across actors.
+private final class DecodedIconCache: @unchecked Sendable {
+    private struct Entry {
+        let image: CGImage
+        let cost: Int
+        var lastUse: UInt64
+    }
+    private let lock = NSLock()
+    private var entries: [String: Entry] = [:]
+    private var cost = 0
+    private var sequence: UInt64 = 0
+    private let maximumCost = 64 * 1024 * 1024
+    private let maximumCount = 256
+
+    func image(for key: String) -> CGImage? {
+        lock.lock()
+        defer { lock.unlock() }
+        guard var entry = entries[key] else { return nil }
+        sequence &+= 1
+        entry.lastUse = sequence
+        entries[key] = entry
+        return entry.image
+    }
+
+    func insert(_ image: CGImage, for key: String) {
+        let imageCost = image.bytesPerRow * image.height
+        guard imageCost <= maximumCost else { return }
+        lock.lock()
+        defer { lock.unlock() }
+        if let previous = entries.removeValue(forKey: key) { cost -= previous.cost }
+        sequence &+= 1
+        entries[key] = Entry(image: image, cost: imageCost, lastUse: sequence)
+        cost += imageCost
+        while cost > maximumCost || entries.count > maximumCount {
+            guard let oldest = entries.min(by: { $0.value.lastUse < $1.value.lastUse })?.key,
+                  let removed = entries.removeValue(forKey: oldest) else { break }
+            cost -= removed.cost
         }
     }
 }
@@ -300,20 +358,32 @@ enum IconAssetStore {
         filename.unicodeScalars.allSatisfy { !CharacterSet.controlCharacters.contains($0) }
     }
 
+    private static let decodedImages = DecodedIconCache()
+
     /// All generated caches are PNGs. Bound decoding and ignore damaged caches.
     static func loadCachedImage(from url: URL) -> NSImage? {
+        guard let image = loadCachedCGImage(from: url) else { return nil }
+        return NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
+    }
+
+    static func loadCachedCGImage(from url: URL) -> CGImage? {
         guard let container = SharedConfiguration.containerURL else { return nil }
         let prefix = container.standardizedFileURL.path + "/"
         guard url.standardizedFileURL.path.hasPrefix(prefix),
               let confined = BoundedLocalFile.confinedURL(in: container, relativePath:
                 String(url.standardizedFileURL.path.dropFirst(prefix.count))),
               confined.standardizedFileURL == url.standardizedFileURL,
-              let data = try? BoundedLocalFile.read(url, maximumBytes: maximumCachedImageBytes),
+              let identity = BoundedLocalFile.identity(of: url, maximumBytes: maximumCachedImageBytes) else { return nil }
+        let key = "\(url.standardizedFileURL.path)|\(identity)"
+        if let image = decodedImages.image(for: key) { return image }
+        guard let data = try? BoundedLocalFile.read(url, maximumBytes: maximumCachedImageBytes),
               let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary),
               CGImageSourceGetType(source) as String? == UTType.png.identifier,
               hasSafeDimensions(source, maximumSide: maximumCustomImageSide),
-              let image = thumbnail(from: source) else { return nil }
-        return NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
+              let image = thumbnail(from: source),
+              BoundedLocalFile.identity(of: url, maximumBytes: maximumCachedImageBytes) == identity else { return nil }
+        decodedImages.insert(image, for: key)
+        return image
     }
 
     static func isValidDownloadedImage(_ data: Data) -> Bool {

@@ -6,7 +6,7 @@ import WidgetKit
 @MainActor
 @Observable
 final class ConfigurationStore {
-    var applications: [AppRecord] = AppCatalog.load()
+    var applications: [AppRecord] = []
     var items: [LauncherItem] = []
     var gridSettings = WidgetGridSettings()
     var displaySettings = WidgetDisplaySettings()
@@ -40,7 +40,7 @@ final class ConfigurationStore {
         isRefreshing = true
         defer { isRefreshing = false }
         do {
-            try AppCatalog.refresh()
+            try await AppCatalog.refresh()
             applications = AppCatalog.load()
             try SharedConfiguration.seedIfMissing(applications: applications)
             let configuration = try SharedConfiguration.read()

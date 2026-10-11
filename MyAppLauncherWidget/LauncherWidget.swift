@@ -90,14 +90,14 @@ struct LauncherProvider: TimelineProvider {
     func getSnapshot(in context: Context, completion: @escaping @Sendable (LauncherEntry) -> Void) {
         let usesStoredPages = !context.isPreview
         Task { @MainActor in
-            let entry = refreshEntry(usesStoredPages: usesStoredPages)
+            let entry = await refreshEntry(usesStoredPages: usesStoredPages)
             completion(entry)
         }
     }
 
     func getTimeline(in context: Context, completion: @escaping @Sendable (Timeline<LauncherEntry>) -> Void) {
         Task { @MainActor in
-            let entry = refreshEntry()
+            let entry = await refreshEntry()
             // A transient read failure must not produce a permanent empty
             // timeline. WidgetKit controls the actual time of the next request.
             let policy: TimelineReloadPolicy = entry.isAwaitingConfiguration
@@ -108,11 +108,16 @@ struct LauncherProvider: TimelineProvider {
     }
 
     @MainActor
-    private func refreshEntry(usesStoredPages: Bool = true) -> LauncherEntry {
+    private func refreshEntry(usesStoredPages: Bool = true) async -> LauncherEntry {
         SharedConfiguration.logContainerAvailability(component: "Widget")
         do {
+            let initialConfiguration = try SharedConfiguration.read()
+            _ = try await applicationCatalog(for: initialConfiguration)
+            // The selection can change while the background scan is suspended.
+            // Publish the latest persisted selection, rather than the old snapshot.
             let configuration = try SharedConfiguration.read()
-            let applications = try applicationCatalog(for: configuration)
+            let applications = configuration.items.contains { $0.kind == .application }
+                ? try AppCatalog.read() : []
             let byIdentifier = Dictionary(uniqueKeysWithValues: applications.map { ($0.id, $0) })
             let customWebsiteItems = configuration.items.filter {
                 $0.kind == .website && $0.websiteCustomIconFilename != nil
@@ -177,7 +182,7 @@ struct LauncherProvider: TimelineProvider {
     }
 
     @MainActor
-    private func applicationCatalog(for configuration: LauncherConfiguration) throws -> [AppRecord] {
+    private func applicationCatalog(for configuration: LauncherConfiguration) async throws -> [AppRecord] {
         let selectedApplications = configuration.items.filter { $0.kind == .application }
         guard !selectedApplications.isEmpty else { return [] }
 
@@ -193,7 +198,7 @@ struct LauncherProvider: TimelineProvider {
         }
         guard !cacheIsComplete else { return applications }
 
-        try AppCatalog.refresh()
+        try await AppCatalog.refresh()
         return try AppCatalog.read()
     }
 

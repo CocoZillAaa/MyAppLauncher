@@ -1,15 +1,17 @@
 import AppKit
 import CryptoKit
+import Darwin
 import Foundation
 import OSLog
 
-struct AppRecord: Codable, Identifiable, Hashable {
+struct AppRecord: Codable, Identifiable, Hashable, Sendable {
     let bundleIdentifier: String
     let name: String
     let bundlePath: String
     let iconFilename: String
     let isBackgroundComponent: Bool
     let installationIdentifier: String?
+    let iconSourceFingerprint: String?
 
     // Existing records retain their bundle ID; additional installations get an
     // independent catalog identity without changing existing selected items.
@@ -20,17 +22,18 @@ struct AppRecord: Codable, Identifiable, Hashable {
         isBackgroundComponent || AppCatalog.looksAuxiliary(name: name, bundleIdentifier: bundleIdentifier)
     }
 
-    init(bundleIdentifier: String, name: String, bundlePath: String, iconFilename: String, isBackgroundComponent: Bool = false, installationIdentifier: String? = nil) {
+    init(bundleIdentifier: String, name: String, bundlePath: String, iconFilename: String, isBackgroundComponent: Bool = false, installationIdentifier: String? = nil, iconSourceFingerprint: String? = nil) {
         self.bundleIdentifier = bundleIdentifier
         self.name = name
         self.bundlePath = bundlePath
         self.iconFilename = iconFilename
         self.isBackgroundComponent = isBackgroundComponent
         self.installationIdentifier = installationIdentifier
+        self.iconSourceFingerprint = iconSourceFingerprint
     }
 
     private enum CodingKeys: String, CodingKey {
-        case bundleIdentifier, name, bundlePath, iconFilename, isBackgroundComponent, installationIdentifier
+        case bundleIdentifier, name, bundlePath, iconFilename, isBackgroundComponent, installationIdentifier, iconSourceFingerprint
     }
 
     init(from decoder: Decoder) throws {
@@ -41,6 +44,7 @@ struct AppRecord: Codable, Identifiable, Hashable {
         iconFilename = try values.decode(String.self, forKey: .iconFilename)
         isBackgroundComponent = try values.decodeIfPresent(Bool.self, forKey: .isBackgroundComponent) ?? false
         installationIdentifier = try values.decodeIfPresent(String.self, forKey: .installationIdentifier)
+        iconSourceFingerprint = try values.decodeIfPresent(String.self, forKey: .iconSourceFingerprint)
     }
 }
 
@@ -78,7 +82,8 @@ enum AppCatalog {
                   LaunchRoute.isValidBundleIdentifier($0.id) &&
                   LaunchRoute.isValidBundleIdentifier($0.bundleIdentifier) &&
                   $0.bundlePath.hasPrefix("/") && $0.bundleURL.pathExtension.lowercased() == "app" &&
-                  isValidIconPath($0.iconFilename)
+                  isValidIconPath($0.iconFilename) &&
+                  ($0.iconSourceFingerprint.map { $0.count == 64 && $0.allSatisfy { "0123456789abcdef".contains($0) } } ?? true)
               }) else { throw CatalogError.invalidCatalog }
         return records.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
@@ -143,39 +148,55 @@ enum AppCatalog {
             ?? url.deletingPathExtension().lastPathComponent
     }
 
-    @MainActor
     @discardableResult
-    static func refresh(in roots: [String] = ["/Applications", "/System/Applications", NSHomeDirectory() + "/Applications"]) throws -> Int {
+    static func refresh(in roots: [String] = ["/Applications", "/System/Applications", NSHomeDirectory() + "/Applications"]) async throws -> Int {
+        let task = Task.detached(priority: .userInitiated) {
+            try await refreshCatalog(in: roots)
+        }
+        return try await withTaskCancellationHandler {
+            try await task.value
+        } onCancel: {
+            task.cancel()
+        }
+    }
+
+    private static func refreshCatalog(in roots: [String]) async throws -> Int {
         guard let container = containerURL else { throw CatalogError.containerUnavailable }
-        logger.notice("Refreshing local catalog")
         let manager = FileManager.default
+        try manager.createDirectory(at: container, withIntermediateDirectories: true)
+        // A companion and a widget are separate processes. Hold a scoped file
+        // lock until all icons and the manifest have been committed and verified.
+        let descriptor = try await acquireRefreshLock(in: container)
+        defer { _ = flock(descriptor, LOCK_UN); _ = Darwin.close(descriptor) }
+        logger.notice("Refreshing local catalog in background")
         guard let iconsURL = BoundedLocalFile.confinedURL(in: container, relativePath: iconDirectory) else {
             throw CatalogError.containerUnavailable
         }
         try manager.createDirectory(at: iconsURL, withIntermediateDirectories: true)
-
         let bundleURLs = discoverApplications(in: roots, fileManager: manager)
-
-        // Preserve the catalog's chosen installation when several applications
-        // share an identifier. Directory enumeration order must not change it.
         let previousRecords = (try? read()) ?? []
+        let byPath = Dictionary(previousRecords.map { ($0.bundlePath, $0) }, uniquingKeysWith: { first, _ in first })
+        let byID = Dictionary(uniqueKeysWithValues: previousRecords.map { ($0.id, $0) })
         let previousPaths = Set(previousRecords.map(\.bundlePath))
         let discoveredPaths = Set(bundleURLs.map(\.path))
         let preferredURLs = bundleURLs.filter { previousPaths.contains($0.path) }
             + bundleURLs.filter { !previousPaths.contains($0.path) }
-
         var seen = Set<String>()
         var records: [AppRecord] = []
+        var generatedIcons = 0
+        let day = Calendar.current.dateComponents([.year, .month, .day], from: .now)
+        let dayStamp = "\(day.year ?? 0)-\(day.month ?? 0)-\(day.day ?? 0)"
         for url in preferredURLs {
+            try Task.checkCancellation()
             guard let bundle = Bundle(url: url),
                   let identifier = bundle.bundleIdentifier,
                   LaunchRoute.isValidBundleIdentifier(identifier) else { continue }
             let name = applicationName(bundle: bundle, url: url)
-            let previous = previousRecords.first { $0.bundlePath == url.path && $0.bundleIdentifier == identifier }
+            let previous = byPath[url.path].flatMap { $0.bundleIdentifier == identifier ? $0 : nil }
             let relocated = previousRecords.filter {
                 $0.bundleIdentifier == identifier && $0.name == name && !discoveredPaths.contains($0.bundlePath)
             }
-            let legacy = previousRecords.first { $0.id == identifier }
+            let legacy = byID[identifier]
             let pathHash = SHA256.hash(data: Data(url.standardizedFileURL.path.utf8))
                 .map { String(format: "%02x", $0) }.joined()
             let separateIdentifier = "install.\(pathHash)"
@@ -185,38 +206,100 @@ enum AppCatalog {
             if seen.contains(installationID) { installationID = separateIdentifier }
             guard seen.insert(installationID).inserted else { continue }
             let filename = "\(installationID.replacingOccurrences(of: "/", with: "_")).png"
+            let iconURL = iconsURL.appendingPathComponent(filename)
+            let fingerprint = iconFingerprint(bundle: bundle, url: url, dayStamp: dayStamp)
+            let canReuseIcon = fingerprint != nil && fingerprint == previous?.iconSourceFingerprint
+                && previous?.iconFilename == "\(iconDirectory)/\(filename)"
+                && IconAssetStore.loadCachedCGImage(from: iconURL) != nil
+            if !canReuseIcon {
+                // Keep AppKit drawing confined to short main-actor operations.
+                // Scanning, metadata, disk IO and publication run in this task.
+                guard let png = await nativeIconPNG(at: url) else { continue }
+                try png.write(to: iconURL, options: .atomic)
+                generatedIcons += 1
+            }
+            let backgroundComponent = (bundle.object(forInfoDictionaryKey: "LSUIElement") as? Bool ?? false)
+                || (bundle.object(forInfoDictionaryKey: "LSBackgroundOnly") as? Bool ?? false)
+            records.append(AppRecord(bundleIdentifier: identifier, name: name, bundlePath: url.path,
+                iconFilename: "\(iconDirectory)/\(filename)", isBackgroundComponent: backgroundComponent,
+                installationIdentifier: installationID, iconSourceFingerprint: fingerprint))
+        }
+        records.sort { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        try Task.checkCancellation()
+        if records != previousRecords {
+            let data = try JSONEncoder().encode(records)
+            guard data.count <= 8 * 1024 * 1024 else { throw BoundedLocalFile.ReadError.tooLarge }
+            try data.write(to: container.appendingPathComponent(manifestName), options: .atomic)
+        }
+        let saved = try read()
+        guard saved == records else { throw CatalogError.verificationFailed }
+        logger.notice("Catalog verified: \(saved.count) applications, \(generatedIcons) regenerated icons")
+        return saved.count
+    }
+
+    private static func acquireRefreshLock(in container: URL) async throws -> Int32 {
+        guard let url = BoundedLocalFile.confinedURL(in: container, relativePath: "Refresh.lock") else {
+            throw BoundedLocalFile.ReadError.invalidFile
+        }
+        let descriptor = Darwin.open(url.path, O_CREAT | O_RDWR | O_NOFOLLOW | O_CLOEXEC, mode_t(0o600))
+        guard descriptor >= 0 else { throw CatalogError.refreshUnavailable }
+        var info = stat()
+        guard Darwin.fstat(descriptor, &info) == 0, (info.st_mode & S_IFMT) == S_IFREG,
+              info.st_uid == geteuid(), info.st_nlink == 1 else {
+            _ = Darwin.close(descriptor)
+            throw BoundedLocalFile.ReadError.invalidFile
+        }
+        do {
+            let clock = ContinuousClock()
+            let deadline = clock.now.advanced(by: .seconds(30))
+            while true {
+                try Task.checkCancellation()
+                if flock(descriptor, LOCK_EX | LOCK_NB) == 0 { return descriptor }
+                guard errno == EWOULDBLOCK || errno == EAGAIN else { throw CatalogError.refreshUnavailable }
+                guard clock.now < deadline else { throw CatalogError.refreshUnavailable }
+                try await Task.sleep(for: .milliseconds(20))
+            }
+        } catch {
+            _ = Darwin.close(descriptor)
+            throw error
+        }
+    }
+
+    private static func iconFingerprint(bundle: Bundle, url: URL, dayStamp: String) -> String? {
+        guard let identity = BoundedLocalFile.identity(of: url, regularFileOnly: false) else { return nil }
+        let resources = url.appendingPathComponent("Contents/Resources", isDirectory: true)
+        var paths = [url.appendingPathComponent("Contents/Info.plist"), resources,
+                     resources.appendingPathComponent("Assets.car")]
+        if let file = bundle.object(forInfoDictionaryKey: "CFBundleIconFile") as? String,
+           !file.isEmpty, URL(fileURLWithPath: file).lastPathComponent == file {
+            paths.append(resources.appendingPathComponent(file))
+            if URL(fileURLWithPath: file).pathExtension.isEmpty {
+                paths.append(resources.appendingPathComponent(file + ".icns"))
+            }
+        }
+        // Refresh daily as well, for system-generated icons that vary by date.
+        let metadata = [identity, dayStamp] + paths.map {
+            $0.path + ":" + (BoundedLocalFile.identity(of: $0, regularFileOnly: false) ?? "missing")
+        }
+        return SHA256.hash(data: Data(metadata.joined(separator: "\n").utf8))
+            .map { String(format: "%02x", $0) }.joined()
+    }
+
+    @MainActor
+    private static func nativeIconPNG(at url: URL) -> Data? {
+        autoreleasepool {
             let icon = NSWorkspace.shared.icon(forFile: url.path)
             guard let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 256, pixelsHigh: 256,
                 bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
                 colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0),
-                let context = NSGraphicsContext(bitmapImageRep: bitmap) else { continue }
+                let context = NSGraphicsContext(bitmapImageRep: bitmap) else { return nil }
             NSGraphicsContext.saveGraphicsState()
+            defer { NSGraphicsContext.restoreGraphicsState() }
             NSGraphicsContext.current = context
             icon.draw(in: NSRect(x: 0, y: 0, width: 256, height: 256),
-                from: .zero, operation: .sourceOver, fraction: 1)
-            NSGraphicsContext.restoreGraphicsState()
-            guard let png = bitmap.representation(using: .png, properties: [:]) else { continue }
-            try png.write(to: iconsURL.appendingPathComponent(filename), options: .atomic)
-            let backgroundComponent = (bundle.object(forInfoDictionaryKey: "LSUIElement") as? Bool ?? false)
-                || (bundle.object(forInfoDictionaryKey: "LSBackgroundOnly") as? Bool ?? false)
-            records.append(AppRecord(
-                bundleIdentifier: identifier,
-                name: name,
-                bundlePath: url.path,
-                iconFilename: "\(iconDirectory)/\(filename)",
-                isBackgroundComponent: backgroundComponent,
-                installationIdentifier: installationID
-            ))
+                      from: .zero, operation: .sourceOver, fraction: 1)
+            return bitmap.representation(using: .png, properties: [:])
         }
-        records.sort { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
-        let url = container.appendingPathComponent(manifestName)
-        let data = try JSONEncoder().encode(records)
-        guard data.count <= 8 * 1024 * 1024 else { throw BoundedLocalFile.ReadError.tooLarge }
-        try data.write(to: url, options: .atomic)
-        let saved = try read()
-        guard saved == records else { throw CatalogError.verificationFailed }
-        logger.notice("Catalog saved and read back: \(saved.count) applications")
-        return saved.count
     }
 
     private static func discoverApplications(in roots: [String], fileManager: FileManager) -> [URL] {
@@ -252,11 +335,12 @@ enum AppCatalog {
     }
 
     enum CatalogError: LocalizedError {
-        case containerUnavailable, verificationFailed, invalidCatalog
+        case containerUnavailable, verificationFailed, invalidCatalog, refreshUnavailable
         var errorDescription: String? {
             switch self {
             case .containerUnavailable: "Le dossier de cache des applications est inaccessible."
             case .verificationFailed: "Le catalogue enregistré n’a pas pu être vérifié."
+            case .refreshUnavailable: "Une actualisation de la bibliothèque est déjà en cours ou inaccessible. Réessayez."
             case .invalidCatalog: "Le catalogue contient une entrée invalide ou en double. Actualisez la bibliothèque."
             }
         }

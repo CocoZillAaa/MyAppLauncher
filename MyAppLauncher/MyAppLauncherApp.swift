@@ -30,7 +30,7 @@ final class LauncherDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
             do {
                 var applications = AppCatalog.load()
                 if applications.isEmpty || applications.contains(where: { $0.installationIdentifier == nil }) {
-                    try AppCatalog.refresh()
+                    try await AppCatalog.refresh()
                     applications = AppCatalog.load()
                 }
                 try SharedConfiguration.seedIfMissing(applications: applications)

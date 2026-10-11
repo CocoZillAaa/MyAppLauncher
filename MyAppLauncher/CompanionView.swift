@@ -108,16 +108,8 @@ struct CompanionView: View {
         HStack {
             Image(systemName: "square.grid.2x2.fill")
                 .foregroundStyle(.tint)
-            VStack(alignment: .leading, spacing: 4) {
-                Text("My App Launcher")
-                    .font(.title2.weight(.semibold))
-                Text("Test mise à jour · build 22")
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(Color.accentColor)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(Color.accentColor.opacity(0.12), in: Capsule())
-            }
+            Text("My App Launcher")
+                .font(.title2.weight(.semibold))
             Spacer()
             Text("\(store.items.count) éléments dans le widget")
                 .foregroundStyle(.secondary)

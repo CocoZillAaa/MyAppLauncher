@@ -8,7 +8,7 @@ import Foundation
 @main
 struct ApplicationResolutionTests {
     @MainActor
-    static func main() throws {
+    static func main() async throws {
         let root = SharedConfiguration.containerURL!
         let manager = FileManager.default
         let identifier = "com.example.ApplicationResolution"
@@ -69,7 +69,7 @@ struct ApplicationResolutionTests {
         let directory = AppCatalog.containerURL!
         try manager.createDirectory(at: directory, withIntermediateDirectories: true)
         try JSONEncoder().encode([stable]).write(to: AppCatalog.manifestURL!, options: .atomic)
-        try AppCatalog.refresh(in: [root.path])
+        try await AppCatalog.refresh(in: [root.path])
         let fixtureRecords = try AppCatalog.read()
         let stableRecord = fixtureRecords.first { $0.bundlePath == stable.bundlePath }!
         let betaRecord = fixtureRecords.first { $0.bundlePath == beta.bundlePath }!
@@ -79,7 +79,14 @@ struct ApplicationResolutionTests {
                   "Each installation has an independent native icon cache")
         try check(Set(fixtureRecords.map(\.id)).count == fixtureRecords.count,
                   "Widget and library dictionary keys are unique")
-        try AppCatalog.refresh(in: [root.path])
+        let stableIconURL = stableRecord.iconURL!
+        let betaIconURL = betaRecord.iconURL!
+        let stableIconIdentity = BoundedLocalFile.identity(of: stableIconURL)
+        let betaIconIdentity = BoundedLocalFile.identity(of: betaIconURL)
+        try await AppCatalog.refresh(in: [root.path])
+        try check(BoundedLocalFile.identity(of: stableIconURL) == stableIconIdentity
+                  && BoundedLocalFile.identity(of: betaIconURL) == betaIconIdentity,
+                  "An unchanged library reuses native icons without rewriting their files")
         try check(try AppCatalog.read() == fixtureRecords,
                   "Installation identities remain stable after another library refresh")
         try check(AppCatalog.applicationURL(for: betaRecord.id, in: fixtureRecords) { stable.bundleURL } == beta.bundleURL,
@@ -117,14 +124,49 @@ struct ApplicationResolutionTests {
         try check(try SharedConfiguration.read().items.count == 2,
                   "Two installations pass the existing shared configuration validation")
 
+        // Damage one cache entry: repairing it must not rewrite an intact neighbor.
+        try Data("corrupt icon".utf8).write(to: stableIconURL, options: .atomic)
+        try await AppCatalog.refresh(in: [root.path])
+        try check(IconAssetStore.loadCachedCGImage(from: stableIconURL) != nil
+                  && BoundedLocalFile.identity(of: betaIconURL) == betaIconIdentity,
+                  "Only a damaged native icon is regenerated")
+        let contents = stable.bundleURL.appendingPathComponent("Contents/Info.plist")
+        var info = try PropertyListSerialization.propertyList(from: Data(contentsOf: contents), options: [], format: nil) as! [String: Any]
+        info["CFBundleVersion"] = "2"
+        try PropertyListSerialization.data(fromPropertyList: info, format: .xml, options: 0).write(to: contents, options: .atomic)
+        let oldFingerprint = stableRecord.iconSourceFingerprint
+        try await AppCatalog.refresh(in: [root.path])
+        try check(try AppCatalog.read().first { $0.id == stableRecord.id }?.iconSourceFingerprint != oldFingerprint
+                  && BoundedLocalFile.identity(of: betaIconURL) == betaIconIdentity,
+                  "An application update invalidates its native icon without rewriting another edition")
+        async let firstRefresh = AppCatalog.refresh(in: [root.path])
+        async let secondRefresh = AppCatalog.refresh(in: [root.path])
+        let counts = try await (firstRefresh, secondRefresh)
+        try check(counts.0 == counts.1 && Set(try AppCatalog.read().map(\.id)).count == fixtureRecords.count,
+                  "Concurrent refresh requests serialize and retain unique installation identities")
+        try check(try SharedConfiguration.read().items == [legacyItem, LauncherItem.application(betaRecord.id)],
+                  "Concurrent refreshes preserve the selected order and custom icon")
+
+        let lockURL = directory.appendingPathComponent("Refresh.lock")
+        try manager.removeItem(at: lockURL)
+        let externalLock = root.deletingLastPathComponent().appendingPathComponent("outside-lock")
+        try Data().write(to: externalLock)
+        try manager.createSymbolicLink(at: lockURL, withDestinationURL: externalLock)
+        var rejectedLock = false
+        do { _ = try await AppCatalog.refresh(in: [root.path]) }
+        catch { rejectedLock = true }
+        try check(rejectedLock, "A symlink cannot redirect the catalog refresh lock")
+        try manager.removeItem(at: lockURL)
+        try manager.removeItem(at: externalLock)
+
         let relocatedURL = root.appendingPathComponent("Relocated/Application Beta.app")
         try manager.createDirectory(at: relocatedURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         try manager.moveItem(at: beta.bundleURL, to: relocatedURL)
-        try AppCatalog.refresh(in: [root.path])
+        try await AppCatalog.refresh(in: [root.path])
         try check(try AppCatalog.read().first { $0.bundlePath == relocatedURL.path }?.id == betaRecord.id,
                   "Moving an additional edition preserves its selection identity")
         try manager.removeItem(at: stable.bundleURL)
-        try AppCatalog.refresh(in: [root.path])
+        try await AppCatalog.refresh(in: [root.path])
         try check(try AppCatalog.read().allSatisfy { $0.id != stableRecord.id },
                   "Removing the stable edition does not transfer its selection to Beta")
 
@@ -142,7 +184,7 @@ struct ApplicationResolutionTests {
             try JSONEncoder().encode([photoshop]).write(to: AppCatalog.manifestURL!, options: .atomic)
             try check(try AppCatalog.applicationURL(for: photoshop.bundleIdentifier) == photoshopURL,
                       "The companion entrypoint resolves the cataloged Photoshop")
-            try AppCatalog.refresh()
+            try await AppCatalog.refresh()
             let realRecords = try AppCatalog.read()
             try check(realRecords.first { $0.id == photoshop.id }?.bundlePath == photoshopURL.path,
                       "Refreshing the real library preserves Photoshop 2026 over Beta")
