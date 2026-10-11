@@ -11,23 +11,18 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
             <description><![CDATA[<!DOCTYPE html><html lang="fr"><meta charset="utf-8"><title>My App Launcher — build 23</title><body>
-<h2>Français — build 23</h2><ul>
-<li>Actualisation de la bibliothèque en arrière-plan, avec réutilisation des icônes inchangées.</li>
-<li>Cache mémoire limité pour accélérer le chargement répété des icônes ; les fichiers remplacés sont pris en compte automatiquement.</li>
-<li>Actualisations du compagnon et du widget coordonnées, sans modifier la sélection ni les réglages.</li>
-<li>Retrait du repère provisoire « Test mise à jour · build 22 ».</li></ul>
-<p>Utilisez « Mises à jour » pour installer ce build. La validation de cette mise à jour sur le second Mac reste à réaliser.</p>
-<h2>English — build 23</h2><ul>
-<li>Background library scanning with reuse of unchanged icons.</li>
-<li>Bounded memory cache for faster repeated icon loading, with invalidation when files change.</li>
-<li>Coordinated companion and widget refreshes that retain selection and settings.</li>
-<li>Removed the temporary build 22 test marker.</li></ul>
-<p>Use the integrated updater to install this build. This upgrade still needs validation on the second Mac.</p>
+<h2>Français — build 23</h2>
+<ul><li>Actualisation de la bibliothèque en arrière-plan et réutilisation des icônes inchangées.</li><li>Cache des icônes limité, actualisé lorsque les fichiers changent.</li><li>Le repère provisoire du build 22 est retiré.</li></ul>
+<p>Validation du build 23 sur un second Mac : le widget et la sélection sont conservés ; le lancement des applications et des liens, ainsi que la navigation entre les pages, fonctionnent.</p>
+<h2>English — build 23</h2>
+<ul><li>Background library refresh and reuse of unchanged app icons.</li><li>Bounded icon cache that refreshes when files change.</li><li>Removed the temporary build 22 marker.</li></ul>
+<p>Build 23 was confirmed on a second Mac: the widget and selection were preserved; apps and web links launch, and page navigation works.</p>
+<p>Use the in-app update checker or download this build from GitHub Releases. This Apple Development signed app is not notarized.</p>
 </body></html>]]></description>
             <enclosure url="https://github.com/CocoZillAaa/MyAppLauncher/releases/download/v1.0.0-build23/MyAppLauncher-1.0.0-build23.zip" length="1892375" type="application/octet-stream" sparkle:edSignature="sa80dis73H10mjMafMJYsvBGIq6oGEQSRYomUAQoJORKiC2ljtakBgqlZZOzuYSuyTO+f44UneV2fZ75ytIYAg=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: zdk+QId0kN2aZYIKmlKF9ECSMCGMkKnQO+BzJiA4lpGUWFjy3XkAJvadmvnzEHaRYWs3hE4IvMOSaqYg6E9yCQ==
-length: 2392
+edSignature: vINZs9HIthlKQDq7twQt9OQ7K0HoAloz/3WrW/1WfDmNcS6pwrkuN76wbzSgSHZWuzxWSZ2Y/KXZqPVOiO2QCQ==
+length: 2278
 -->
