@@ -25,7 +25,7 @@ Cinq formats : Petit, Moyen, Grand, Très grand et Très grand vertical. Le fond
 
 ### Installer
 
-**Prérequis : Mac Apple Silicon et macOS 27 ou ultérieur.** Le fichier fourni est un build de développement signé Apple Development, non notarisé. L’ouverture du compagnon, l’installation du widget et ses interactions ont été confirmées par l’utilisateur sur un second Mac après autorisation manuelle dans les réglages de sécurité sur une version précédente. L’installation manuelle du build 21, la conservation de la sélection et la recherche de mises à jour sont confirmées sur le second Mac. Le passage intégré au build 22 reste à valider. macOS peut bloquer le premier lancement.
+**Prérequis : Mac Apple Silicon et macOS 27 ou ultérieur.** Le fichier fourni est un build de développement signé Apple Development, non notarisé. L’ouverture du compagnon, l’installation du widget et ses interactions ont été confirmées par l’utilisateur sur un second Mac après autorisation manuelle dans les réglages de sécurité sur une version précédente. L’installation manuelle du build 21, la conservation de la sélection et la recherche de mises à jour sont confirmées sur le second Mac. Le passage intégré du build 21 au build 22 est confirmé sur ce second Mac : le widget reste en place et la sélection est conservée. macOS peut bloquer le premier lancement.
 
 1. Dans [Releases](https://github.com/CocoZillAaa/MyAppLauncher/releases/latest), téléchargez `MyAppLauncher-1.0.0-build22.zip`.
 2. Décompressez-le et glissez `MyAppLauncher.app` dans **Applications**.
@@ -57,7 +57,7 @@ Les images personnalisées doivent être **carrées**, de **1024 × 1024 pixels 
 
 Depuis le **build 21**, ouvrez **Mises à jour → Rechercher une mise à jour…** dans le compagnon, ou utilisez cette commande dans son menu en haut de l’écran. L’option **Rechercher automatiquement** est désactivée au départ ; elle fonctionne lorsque le compagnon est ouvert. Chaque installation demande votre confirmation.
 
-Les versions sont proposées depuis GitHub Releases par un fichier de versions signé. Le dépôt et ses Releases doivent être publics pour cette recherche sans compte ni jeton. Le téléchargement et son contenu sont vérifiés avant installation. Le widget est fermé avant remplacement, puis l’app et le widget sont réenregistrés au premier lancement du nouveau build. **Le passage intégré vers une version suivante reste à valider sur un second Mac ; aucun redémarrage n’est prévu par ce mécanisme.**
+Les versions sont proposées depuis GitHub Releases par un fichier de versions signé. Le dépôt et ses Releases doivent être publics pour cette recherche sans compte ni jeton. Le téléchargement et son contenu sont vérifiés avant installation. Le widget est fermé avant remplacement, puis l’app et le widget sont réenregistrés au premier lancement du nouveau build. **Le passage intégré 21 → 22 a été confirmé sur un second Mac : repère du build 22 visible, widget resté en place, applications conservées et recherche de mises à jour correcte. Le lancement depuis le widget après cette mise à jour reste à confirmer.**
 
 Pour passer d’un build 20 ou antérieur au build 21, la première installation reste manuelle : quittez le compagnon, remplacez l’app dans Applications, autorisez son ouverture si macOS le demande, puis ouvrez-la. Gardez une seule copie installée et ne supprimez pas ses données. La configuration, l’ordre et les icônes sont stockés localement dans :
 
@@ -94,7 +94,7 @@ Five sizes: Small, Medium, Large, Extra Large and Extra Large Portrait. The widg
 
 ### Install
 
-**Requirements: Apple Silicon Mac and macOS 27 or later.** The download is an Apple Development signed build and is not notarized. The user confirmed that the companion opens and the widget installs and responds on a second Mac after manual approval in security settings on an earlier version. Manual build 21 installation, retained selection and update checking are confirmed on the second Mac. The integrated upgrade to build 22 still needs validation. macOS may block the first launch.
+**Requirements: Apple Silicon Mac and macOS 27 or later.** The download is an Apple Development signed build and is not notarized. The user confirmed that the companion opens and the widget installs and responds on a second Mac after manual approval in security settings on an earlier version. Manual build 21 installation, retained selection and update checking are confirmed on the second Mac. The integrated upgrade from build 21 to build 22 is confirmed on this second Mac: the widget remains in place and the selection is retained. macOS may block the first launch.
 
 1. Download `MyAppLauncher-1.0.0-build22.zip` from [Releases](https://github.com/CocoZillAaa/MyAppLauncher/releases/latest).
 2. Extract it and drag `MyAppLauncher.app` into **Applications**.
@@ -126,7 +126,7 @@ Custom images must be **square**, at most **1024 × 1024 pixels** and **1 MB**. 
 
 From **build 21**, open **Mises à jour → Rechercher une mise à jour…** in the companion, or use this command in its menu bar menu. Optional automatic checks are disabled initially and run while the companion is open. Installation always requires confirmation.
 
-Versions are published in GitHub Releases and a signed feed. The repository and Releases must be public for checks without an account or token. Downloads are verified before extraction and installation. The widget is stopped before replacement; the app and widget are registered again on first launch of the new build. **Updating through the integrated updater to a later build still needs validation on a second Mac. The mechanism does not require a planned reboot.**
+Versions are published in GitHub Releases and a signed feed. The repository and Releases must be public for checks without an account or token. Downloads are verified before extraction and installation. The widget is stopped before replacement; the app and widget are registered again on first launch of the new build. **The integrated upgrade from build 21 to build 22 was confirmed on a second Mac: the build 22 marker is visible, the widget stayed in place, selected apps were retained and update checking works. Launching from the widget after this upgrade still needs confirmation.**
 
 The first installation from build 20 or earlier to build 21 is manual: quit the companion, replace the app in Applications, approve opening it if macOS requests it, then open it. Keep one installed copy and preserve its data. Configuration, order and icons are stored locally in:
 
