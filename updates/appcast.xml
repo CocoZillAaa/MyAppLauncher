@@ -5,24 +5,29 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
         <title>MyAppLauncher</title>
         <item>
             <title>1.0.0</title>
-            <pubDate>Sat, 10 Oct 2026 23:34:50 +0200</pubDate>
+            <pubDate>Sun, 11 Oct 2026 08:45:22 +0200</pubDate>
             <link>https://github.com/CocoZillAaa/MyAppLauncher</link>
-            <sparkle:version>22</sparkle:version>
+            <sparkle:version>23</sparkle:version>
             <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<h2>Test de mise à jour — build 22</h2>
-<p>Ce build ajoute le repère bleu « Test mise à jour · build 22 » sous le titre du compagnon.</p>
-<p>Il permet de vérifier la mise à jour depuis le build 21 : téléchargement, installation après confirmation, relance du compagnon et retour du widget avec votre sélection et vos réglages. Le mécanisme de mise à jour est celui du build 21.</p>
-<p>Pour réaliser le test, installez cette version depuis « Mises à jour → Rechercher une mise à jour… ». Ne remplacez pas l’app manuellement. Après installation, ouvrez « Configurer… » si la fenêtre ne s’affiche pas. Le repère doit apparaître.</p>
-<h2>Update trial — build 22</h2>
-<p>This build adds the blue “Test mise à jour · build 22” marker below the companion title.</p>
-<p>Use the update check in build 21 to verify download, confirmed installation, companion relaunch and widget recovery with existing settings. The update mechanism is unchanged from build 21. Open “Configurer…” if the configuration window does not appear after relaunch.</p>
-<p>Apple Silicon, macOS 27 minimum. Apple Development signed, not notarized.</p>
-]]></description>
-            <enclosure url="https://github.com/CocoZillAaa/MyAppLauncher/releases/download/v1.0.0-build22/MyAppLauncher-1.0.0-build22.zip" length="1848577" type="application/octet-stream" sparkle:edSignature="TPA4mafMNAv6eEvbAP8A51GQuVr0EbjtTUTBtM04C74lMfkM7t3NooOJW9h84TO/7a4MJ7QIgOzGgNDma+CiBg=="></enclosure>
+            <description><![CDATA[<!DOCTYPE html><html lang="fr"><meta charset="utf-8"><title>My App Launcher — build 23</title><body>
+<h2>Français — build 23</h2><ul>
+<li>Actualisation de la bibliothèque en arrière-plan, avec réutilisation des icônes inchangées.</li>
+<li>Cache mémoire limité pour accélérer le chargement répété des icônes ; les fichiers remplacés sont pris en compte automatiquement.</li>
+<li>Actualisations du compagnon et du widget coordonnées, sans modifier la sélection ni les réglages.</li>
+<li>Retrait du repère provisoire « Test mise à jour · build 22 ».</li></ul>
+<p>Utilisez « Mises à jour » pour installer ce build. La validation de cette mise à jour sur le second Mac reste à réaliser.</p>
+<h2>English — build 23</h2><ul>
+<li>Background library scanning with reuse of unchanged icons.</li>
+<li>Bounded memory cache for faster repeated icon loading, with invalidation when files change.</li>
+<li>Coordinated companion and widget refreshes that retain selection and settings.</li>
+<li>Removed the temporary build 22 test marker.</li></ul>
+<p>Use the integrated updater to install this build. This upgrade still needs validation on the second Mac.</p>
+</body></html>]]></description>
+            <enclosure url="https://github.com/CocoZillAaa/MyAppLauncher/releases/download/v1.0.0-build23/MyAppLauncher-1.0.0-build23.zip" length="1892375" type="application/octet-stream" sparkle:edSignature="sa80dis73H10mjMafMJYsvBGIq6oGEQSRYomUAQoJORKiC2ljtakBgqlZZOzuYSuyTO+f44UneV2fZ75ytIYAg=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: WLyOAo0JkXBLruEvb2Gk11nMjOQvsTLyDrS9w4DsQcpZmiB448I5Q6cBbsxvZDLz3NmLicK5pBa9aTau/5H6BA==
-length: 2365
+edSignature: zdk+QId0kN2aZYIKmlKF9ECSMCGMkKnQO+BzJiA4lpGUWFjy3XkAJvadmvnzEHaRYWs3hE4IvMOSaqYg6E9yCQ==
+length: 2392
 -->
